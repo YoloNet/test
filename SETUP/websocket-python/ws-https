@@ -1,0 +1,278 @@
+#!/usr/bin/python3
+import socket, threading, select, sys, time, base64, hashlib, re
+
+# Listen
+LISTENING_ADDR = '0.0.0.0'
+LISTENING_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 1209
+
+# CONST
+BUFLEN = 4096 * 4
+TIMEOUT = 60
+DEFAULT_HOST = '127.0.0.1'
+DEFAULT_PORT = 22
+
+# WebSocket magic string for handshake
+WS_MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+class Server(threading.Thread):
+    def __init__(self, host, port):
+        super().__init__()
+        self.host = host
+        self.port = port
+        self.threads = []
+        self.threadsLock = threading.Lock()
+        self.running = False
+        self.request_count = 0
+
+    def run(self):
+        self.soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.soc.settimeout(2)
+        self.soc.bind((self.host, self.port))
+        self.soc.listen(128)
+        self.running = True
+        
+        print(f"\n:-------- Universal SSH-HTTPS Proxy --------:")
+        print(f"Listening addr: {self.host}")
+        print(f"Listening port: {self.port}")
+        print(f"Backend SSH: {DEFAULT_HOST}:{DEFAULT_PORT}")
+        print(f"Mode: ACCEPTS ANY CLIENT PAYLOAD")
+        print(f":-------------------------------------------:\n")
+        
+        try:
+            while self.running:
+                try:
+                    c, addr = self.soc.accept()
+                    c.setblocking(1)
+                    self.request_count += 1
+                    print(f"\n[NEW #{self.request_count}] Connection from {addr}")
+                except socket.timeout:
+                    continue
+                conn = UniversalConnectionHandler(c, self, addr, self.request_count)
+                conn.start()
+                with self.threadsLock:
+                    self.threads.append(conn)
+        finally:
+            self.running = False
+            self.soc.close()
+
+    def removeConn(self, conn):
+        with self.threadsLock:
+            if conn in self.threads:
+                self.threads.remove(conn)
+
+    def close(self):
+        self.running = False
+        with self.threadsLock:
+            for c in list(self.threads):
+                c.close()
+
+class UniversalConnectionHandler(threading.Thread):
+    def __init__(self, socClient, server, addr, conn_id):
+        super().__init__()
+        self.daemon = True
+        self.clientClosed = False
+        self.targetClosed = True
+        self.client = socClient
+        self.server = server
+        self.addr = addr
+        self.conn_id = conn_id
+
+    def close(self):
+        try:
+            if not self.clientClosed:
+                self.client.shutdown(socket.SHUT_RDWR)
+                self.client.close()
+        except:
+            pass
+        self.clientClosed = True
+
+        try:
+            if hasattr(self, "target") and not self.targetClosed:
+                self.target.shutdown(socket.SHUT_RDWR)
+                self.target.close()
+        except:
+            pass
+        self.targetClosed = True
+
+    def run(self):
+        try:
+            # Read initial payload from client
+            initial_data = self.client.recv(BUFLEN)
+            if not initial_data:
+                return
+                
+            request_str = initial_data.decode('utf-8', errors='ignore')
+            print(f"[{self.addr}] Received payload:")
+            print("-" * 50)
+            print(request_str[:800])  # Show first 800 chars
+            print("-" * 50)
+            
+            # Handle universal payload and connect to SSH
+            self.handle_universal_payload(request_str)
+            
+        except Exception as e:
+            print(f"[{self.addr}] Connection error: {e}")
+        finally:
+            self.close()
+            self.server.removeConn(self)
+
+    def handle_universal_payload(self, request_str):
+        """Universal handler for any client payload format"""
+        try:
+            # Connect to SSH backend
+            self.connect_target(DEFAULT_HOST, DEFAULT_PORT)
+            print(f"[{self.addr}] Connected to SSH backend")
+            
+            # Generate appropriate response based on payload
+            response = self.generate_universal_response(request_str)
+            
+            if response:
+                self.client.sendall(response)
+                print(f"[{self.addr}] Sent response: {len(response)} bytes")
+            
+            # Start bidirectional data tunnel
+            print(f"[{self.addr}] Starting SSH tunnel...")
+            self.doCONNECT()
+            
+        except Exception as e:
+            print(f"[{self.addr}] Universal payload handler error: {e}")
+
+    def generate_universal_response(self, request_str):
+        """Generate appropriate response based on request format"""
+        request_lower = request_str.lower()
+        
+        # Check for WebSocket upgrade
+        if 'upgrade: websocket' in request_lower or 'upgrade:websocket' in request_lower:
+            return self.create_websocket_response(request_str)
+        
+        # Check for HTTP request (GET, POST, PUT, etc.)
+        elif any(request_str.startswith(method) for method in ['GET', 'POST', 'PUT', 'HEAD', 'OPTIONS', 'CONNECT']):
+            return self.create_http_response(request_str)
+        
+        # Check for CONNECT method (HTTP tunnel)
+        elif request_str.startswith('CONNECT'):
+            return b'HTTP/1.1 200 Connection Established\r\n\r\n'
+        
+        # Raw data or custom protocol - send enhanced response
+        else:
+            print(f"[{self.addr}] Raw/Custom protocol detected")
+            return b'HTTP/1.1 101 <b><u><font color="green"> Success SSH-443, Universal Proxy </font></b>\r\n\r\nContent-Length: 104857600000\r\n\r\n'
+
+    def create_websocket_response(self, request_str):
+        """Create WebSocket handshake response"""
+        print(f"[{self.addr}] WebSocket upgrade detected")
+        
+        # Extract WebSocket key
+        ws_key_match = re.search(r'sec-websocket-key:\s*([^\r\n]+)', request_str, re.IGNORECASE)
+        
+        if ws_key_match:
+            ws_key = ws_key_match.group(1).strip()
+            # Generate proper accept key
+            accept_key = base64.b64encode(
+                hashlib.sha1((ws_key + WS_MAGIC_STRING).encode()).digest()
+            ).decode()
+            
+            response = (
+                "HTTP/1.1 101 Switching Protocols\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                f"Sec-WebSocket-Accept: {accept_key}\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                "\r\n"
+            ).encode()
+        else:
+            # Fallback WebSocket response with custom message
+            response = (
+                "HTTP/1.1 101 <b><u><font color=\"green\"> WebSocket SSH-443, Universal Proxy </font></b>\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                "Content-Length: 104857600000\r\n"
+                "\r\n"
+            ).encode()
+        
+        return response
+
+    def create_http_response(self, request_str):
+        """Create HTTP response"""
+        print(f"[{self.addr}] HTTP request detected")
+        
+        # Check if it's asking for upgrade but not WebSocket
+        if 'connection: upgrade' in request_str.lower():
+            return (
+                "HTTP/1.1 101 <b><u><font color=\"green\"> Success SSH-443, Universal Proxy </font></b>\r\n"
+                "Connection: Upgrade\r\n"
+                "Content-Length: 104857600000\r\n"
+                "\r\n"
+            ).encode()
+        else:
+            # Standard HTTP response with custom message
+            return (
+                "HTTP/1.1 200 <b><u><font color=\"green\"> Success SSH-443, Universal Proxy </font></b>\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: keep-alive\r\n"
+                "\r\n"
+            ).encode()
+
+    def connect_target(self, host, port):
+        """Connect to target SSH server"""
+        addrinfo = socket.getaddrinfo(host, port)[0]
+        self.target = socket.socket(addrinfo[0], addrinfo[1], addrinfo[2])
+        self.targetClosed = False
+        self.target.connect(addrinfo[4])
+
+    def doCONNECT(self):
+        """Handle bidirectional data tunneling"""
+        sockets = [self.client, self.target]
+        bytes_client_to_ssh = 0
+        bytes_ssh_to_client = 0
+        count = 0
+        error = False
+        
+        while True:
+            count += 1
+            ready, _, err = select.select(sockets, [], sockets, 3)
+            
+            if err:
+                error = True
+                break
+                
+            if ready:
+                for s in ready:
+                    try:
+                        data = s.recv(BUFLEN)
+                        if data:
+                            if s is self.target:
+                                # Data from SSH to client
+                                self.client.sendall(data)
+                                bytes_ssh_to_client += len(data)
+                            else:
+                                # Data from client to SSH
+                                self.target.sendall(data)
+                                bytes_client_to_ssh += len(data)
+                            count = 0
+                        else:
+                            error = True
+                            break
+                    except Exception as e:
+                        print(f"[{self.addr}] Data transfer error: {e}")
+                        error = True
+                        break
+            
+            if count >= TIMEOUT or error:
+                break
+        
+        print(f"[{self.addr}] Tunnel closed - Client?SSH: {bytes_client_to_ssh}B, SSH?Client: {bytes_ssh_to_client}B")
+
+def main():
+    server = Server(LISTENING_ADDR, LISTENING_PORT)
+    server.start()
+    try:
+        while True:
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\nShutting down server...")
+        server.close()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,784 @@
+#!/usr/bin/python3
+import socket, threading, select, sys, time, base64, hashlib, re, os, json, struct
+from datetime import datetime
+import sqlite3
+
+# Only listen on localhost for safety (Caddy reverse-proxies)
+LISTENING_ADDR = '127.0.0.1'
+LISTENING_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 2082
+
+# Backend SSH
+DEFAULT_HOST = '127.0.0.1'
+DEFAULT_PORT = 22
+BUFLEN = 4096 * 4
+TIMEOUT = 60
+
+# Custom banner for VPN client logs (appears in headers only)
+CUSTOM_BANNER_TEXT = "REDVPN Premium Server - Tunnel Active! HAPPY BROWSING! Script Owner telegram @redvpn121"
+SERVER_BANNER = "ðŸš€ Premium SSH Tunnel Connected Successfully! ðŸš€"
+
+# Server identification
+SERVER_NAME = "REDVPN-Proxy/2.0"
+
+# WebSocket magic string for handshake
+WS_MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+# Logging configuration
+LOG_FILE = "/var/log/websocket-proxy.log"
+DB_FILE = "/var/log/websocket-connections.db"
+AUTH_LOG_FILE = "/var/log/websocket-ssh-auth.log"
+
+class SSHAuthLogger:
+    """Separate logger for SSH authentication attempts"""
+    def __init__(self):
+        self.init_auth_database()
+    
+    def init_auth_database(self):
+        """Initialize SSH auth logging database"""
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS ssh_auth_attempts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    connection_id INTEGER,
+                    real_ip TEXT,
+                    username TEXT,
+                    password_hash TEXT,
+                    auth_method TEXT,
+                    auth_result TEXT,
+                    timestamp DATETIME,
+                    session_id TEXT,
+                    FOREIGN KEY(connection_id) REFERENCES connections(id)
+                )
+            ''')
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"[AUTH-DB] Auth database initialization error: {e}")
+    
+    def log_auth_attempt(self, connection_id, real_ip, username, password, auth_method, result, session_id):
+        """Log SSH authentication attempt"""
+        try:
+            # Hash password for security (never store plaintext)
+            password_hash = hashlib.sha256(password.encode()).hexdigest()[:16] if password else None
+            
+            # Database logging
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO ssh_auth_attempts 
+                (connection_id, real_ip, username, password_hash, auth_method, auth_result, timestamp, session_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (connection_id, real_ip, username, password_hash, auth_method, result, datetime.now(), session_id))
+            conn.commit()
+            conn.close()
+            
+            # File logging
+            auth_entry = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] SSH_AUTH - IP: {real_ip} | User: {username} | Method: {auth_method} | Result: {result} | Session: {session_id}\n"
+            with open(AUTH_LOG_FILE, "a") as f:
+                f.write(auth_entry)
+            
+            print(f"[SSH-AUTH] {real_ip} - User: {username} - {result}")
+            
+        except Exception as e:
+            print(f"[AUTH-LOG] Auth logging error: {e}")
+
+class SSHProtocolParser:
+    """Parse SSH protocol packets to extract authentication data"""
+    
+    def __init__(self, auth_logger, connection_id, real_ip):
+        self.auth_logger = auth_logger
+        self.connection_id = connection_id
+        self.real_ip = real_ip
+        self.session_id = f"ws_{int(time.time())}_{hash(real_ip) % 10000}"
+        self.auth_phase = False
+        self.username = None
+        self.buffer = b""
+        
+    def parse_ssh_packet(self, data, direction):
+        """Parse SSH protocol packets for authentication info"""
+        try:
+            if not data:
+                return data
+            
+            # Add to buffer for packet reconstruction
+            self.buffer += data
+            
+            # Look for SSH protocol packets
+            if direction == "CLIENT->SSH":
+                self.parse_client_packets()
+            elif direction == "SSH->CLIENT":
+                self.parse_server_packets()
+            
+            return data
+            
+        except Exception as e:
+            print(f"[SSH-PARSER] Parsing error: {e}")
+            return data
+    
+    def parse_client_packets(self):
+        """Parse packets from client to SSH server"""
+        try:
+            while len(self.buffer) >= 4:
+                # SSH packet format: [4 bytes length][1 byte padding][payload]
+                if len(self.buffer) < 4:
+                    break
+                
+                # Extract packet length (first 4 bytes, big-endian)
+                try:
+                    packet_length = struct.unpack('>I', self.buffer[:4])[0]
+                except struct.error:
+                    # Not a valid SSH packet, look for patterns instead
+                    self.parse_text_patterns()
+                    break
+                
+                # Check if we have complete packet
+                if len(self.buffer) < packet_length + 4:
+                    break
+                
+                # Extract complete packet
+                packet = self.buffer[4:packet_length + 4]
+                self.buffer = self.buffer[packet_length + 4:]
+                
+                if len(packet) > 0:
+                    # Parse SSH message type
+                    msg_type = packet[0] if isinstance(packet[0], int) else ord(packet[0])
+                    self.handle_ssh_message(msg_type, packet[1:])
+                    
+        except Exception as e:
+            # If structured parsing fails, try text-based parsing
+            self.parse_text_patterns()
+    
+    def parse_text_patterns(self):
+        """Parse authentication using text patterns (fallback method)"""
+        try:
+            # Convert buffer to string for pattern matching
+            text_data = self.buffer.decode('utf-8', errors='ignore')
+            
+            # Look for SSH authentication patterns
+            auth_patterns = [
+                # OpenSSH authentication request patterns
+                r'ssh-userauth.*?(\w+)',
+                # Password authentication
+                r'password.*?([a-zA-Z0-9_\-\.]+)',
+                # Username patterns
+                r'user[:\s]+([a-zA-Z0-9_\-\.]+)',
+                # Specific SSH protocol strings
+                r'ssh-connection.*?([a-zA-Z0-9_\-\.]+)',
+            ]
+            
+            for pattern in auth_patterns:
+                matches = re.findall(pattern, text_data, re.IGNORECASE)
+                if matches:
+                    for match in matches:
+                        if len(match) > 2 and match not in ['ssh', 'connection', 'userauth']:
+                            if not self.username:
+                                self.username = match
+                                print(f"[SSH-PARSER] Detected username attempt: {match}")
+            
+            # Clear processed buffer
+            self.buffer = self.buffer[-1024:]  # Keep last 1KB for context
+            
+        except Exception as e:
+            print(f"[SSH-PARSER] Text pattern parsing error: {e}")
+    
+    def handle_ssh_message(self, msg_type, payload):
+        """Handle specific SSH message types"""
+        try:
+            # SSH message types (RFC 4252)
+            SSH_MSG_USERAUTH_REQUEST = 50
+            SSH_MSG_USERAUTH_SUCCESS = 52
+            SSH_MSG_USERAUTH_FAILURE = 51
+            
+            if msg_type == SSH_MSG_USERAUTH_REQUEST:
+                self.parse_userauth_request(payload)
+            elif msg_type == SSH_MSG_USERAUTH_SUCCESS:
+                if self.username:
+                    self.auth_logger.log_auth_attempt(
+                        self.connection_id, self.real_ip, self.username, 
+                        "", "password", "SUCCESS", self.session_id
+                    )
+            elif msg_type == SSH_MSG_USERAUTH_FAILURE:
+                if self.username:
+                    self.auth_logger.log_auth_attempt(
+                        self.connection_id, self.real_ip, self.username,
+                        "", "password", "FAILURE", self.session_id
+                    )
+                    
+        except Exception as e:
+            print(f"[SSH-PARSER] Message handling error: {e}")
+    
+    def parse_userauth_request(self, payload):
+        """Parse SSH userauth request packet"""
+        try:
+            if len(payload) < 4:
+                return
+            
+            # SSH string format: [4 bytes length][string data]
+            offset = 0
+            
+            # Extract username
+            if offset + 4 <= len(payload):
+                username_len = struct.unpack('>I', payload[offset:offset+4])[0]
+                offset += 4
+                if offset + username_len <= len(payload):
+                    username = payload[offset:offset+username_len].decode('utf-8', errors='ignore')
+                    offset += username_len
+                    self.username = username
+                    
+                    # Extract service name
+                    if offset + 4 <= len(payload):
+                        service_len = struct.unpack('>I', payload[offset:offset+4])[0]
+                        offset += 4 + service_len
+                        
+                        # Extract method name
+                        if offset + 4 <= len(payload):
+                            method_len = struct.unpack('>I', payload[offset:offset+4])[0]
+                            offset += 4
+                            if offset + method_len <= len(payload):
+                                method = payload[offset:offset+method_len].decode('utf-8', errors='ignore')
+                                
+                                print(f"[SSH-PARSER] Auth attempt - User: {username}, Method: {method}")
+                                
+                                # If it's password authentication, extract password
+                                if method == "password":
+                                    offset += method_len + 1  # Skip method and boolean
+                                    if offset + 4 <= len(payload):
+                                        pass_len = struct.unpack('>I', payload[offset:offset+4])[0]
+                                        offset += 4
+                                        if offset + pass_len <= len(payload) and pass_len < 256:  # Reasonable password length
+                                            password = payload[offset:offset+pass_len].decode('utf-8', errors='ignore')
+                                            
+                                            # Log the authentication attempt
+                                            self.auth_logger.log_auth_attempt(
+                                                self.connection_id, self.real_ip, username,
+                                                password, method, "ATTEMPT", self.session_id
+                                            )
+                                            
+        except Exception as e:
+            print(f"[SSH-PARSER] Userauth parsing error: {e}")
+    
+    def parse_server_packets(self):
+        """Parse packets from SSH server to client"""
+        # For now, just clear the buffer since we mainly need client auth data
+        self.buffer = self.buffer[-512:]  # Keep small buffer for context
+
+class ConnectionLogger:
+    def __init__(self):
+        self.init_database()
+    
+    def init_database(self):
+        """Initialize SQLite database for connection logging"""
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS connections (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    real_ip TEXT,
+                    proxy_ip TEXT,
+                    user_agent TEXT,
+                    connection_type TEXT,
+                    timestamp DATETIME,
+                    bytes_sent INTEGER DEFAULT 0,
+                    bytes_received INTEGER DEFAULT 0,
+                    duration INTEGER DEFAULT 0,
+                    status TEXT DEFAULT 'active'
+                )
+            ''')
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"[DB] Database initialization error: {e}")
+    
+    def log_connection(self, real_ip, proxy_ip, user_agent, connection_type):
+        """Log new connection to database and file"""
+        try:
+            # Database logging
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO connections (real_ip, proxy_ip, user_agent, connection_type, timestamp)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (real_ip, proxy_ip, user_agent, connection_type, datetime.now()))
+            connection_id = cursor.lastrowid
+            conn.commit()
+            conn.close()
+            
+            # File logging
+            log_entry = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] NEW_CONNECTION - Real IP: {real_ip} | Proxy IP: {proxy_ip} | Type: {connection_type} | User-Agent: {user_agent[:100]}\n"
+            with open(LOG_FILE, "a") as f:
+                f.write(log_entry)
+            
+            print(f"[LOG] Connection logged - ID: {connection_id}, Real IP: {real_ip}")
+            return connection_id
+            
+        except Exception as e:
+            print(f"[LOG] Logging error: {e}")
+            return None
+    
+    def update_connection_stats(self, connection_id, bytes_sent, bytes_received, duration):
+        """Update connection statistics"""
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE connections 
+                SET bytes_sent = ?, bytes_received = ?, duration = ?, status = 'completed'
+                WHERE id = ?
+            ''', (bytes_sent, bytes_received, duration, connection_id))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"[LOG] Stats update error: {e}")
+
+class UniversalConnectionHandler(threading.Thread):
+    def __init__(self, client, addr, logger, auth_logger):
+        super().__init__()
+        self.client = client
+        self.addr = addr
+        self.logger = logger
+        self.auth_logger = auth_logger
+        self.daemon = True
+        self.connection_id = None
+        self.start_time = time.time()
+        self.bytes_sent = 0
+        self.bytes_received = 0
+        self.ssh_parser = None
+        
+    def run(self):
+        try:
+            # Read initial data from client
+            initial_data = self.client.recv(BUFLEN)
+            if not initial_data:
+                return
+                
+            request_str = initial_data.decode('utf-8', errors='ignore')
+            
+            # Extract real IP and other info from headers
+            real_ip, user_agent, connection_type = self.extract_client_info(request_str)
+            
+            # Log the connection
+            self.connection_id = self.logger.log_connection(
+                real_ip, str(self.addr[0]), user_agent, connection_type
+            )
+            
+            # Initialize SSH parser for authentication tracking
+            self.ssh_parser = SSHProtocolParser(self.auth_logger, self.connection_id, real_ip)
+            
+            print(f"\n[{real_ip}] ({self.addr}) Received {connection_type} payload:")
+            print("-" * 50)
+            print(request_str[:400])  # Show first 400 chars
+            print("-" * 50)
+            
+            # Determine payload type and handle accordingly
+            self.handle_universal_payload(request_str, initial_data)
+                
+        except Exception as e:
+            print(f"[{self.addr}] Connection error: {e}")
+        finally:
+            # Update final statistics
+            if self.connection_id:
+                duration = int(time.time() - self.start_time)
+                self.logger.update_connection_stats(
+                    self.connection_id, self.bytes_sent, self.bytes_received, duration
+                )
+            try:
+                self.client.close()
+            except:
+                pass
+    
+    def extract_client_info(self, request_str):
+        """Extract real IP address and other client info from HTTP headers"""
+        real_ip = str(self.addr[0])  # Fallback to proxy IP
+        user_agent = "Unknown"
+        connection_type = "Unknown"
+        
+        # Check for real IP in various headers (Caddy typically uses these)
+        headers_to_check = [
+            r'x-forwarded-for:\s*([^\r\n,]+)',
+            r'x-real-ip:\s*([^\r\n]+)',
+            r'cf-connecting-ip:\s*([^\r\n]+)',  # Cloudflare
+            r'x-client-ip:\s*([^\r\n]+)',
+            r'x-cluster-client-ip:\s*([^\r\n]+)'
+        ]
+        
+        for header_pattern in headers_to_check:
+            match = re.search(header_pattern, request_str, re.IGNORECASE)
+            if match:
+                potential_ip = match.group(1).strip()
+                # Take first IP if comma-separated
+                if ',' in potential_ip:
+                    potential_ip = potential_ip.split(',')[0].strip()
+                # Validate IP format
+                if self.is_valid_ip(potential_ip):
+                    real_ip = potential_ip
+                    break
+        
+        # Extract User-Agent
+        ua_match = re.search(r'user-agent:\s*([^\r\n]+)', request_str, re.IGNORECASE)
+        if ua_match:
+            user_agent = ua_match.group(1).strip()
+        
+        # Determine connection type
+        if 'upgrade: websocket' in request_str.lower():
+            connection_type = "WebSocket"
+        elif request_str.startswith('CONNECT'):
+            connection_type = "HTTP_TUNNEL"
+        elif any(request_str.startswith(method) for method in ['GET', 'POST', 'PUT', 'HEAD']):
+            connection_type = "HTTP"
+        else:
+            connection_type = "RAW"
+        
+        return real_ip, user_agent, connection_type
+    
+    def is_valid_ip(self, ip):
+        """Basic IP address validation"""
+        try:
+            parts = ip.split('.')
+            if len(parts) != 4:
+                return False
+            for part in parts:
+                if not 0 <= int(part) <= 255:
+                    return False
+            # Exclude private/local IPs for real IP detection
+            if ip.startswith(('127.', '10.', '192.168.', '172.')):
+                return False
+            return True
+        except:
+            return False
+                
+    def handle_universal_payload(self, request_str, raw_data):
+        """Universal handler for any client payload format"""
+        try:
+            # Connect to SSH backend first
+            backend = socket.create_connection((DEFAULT_HOST, DEFAULT_PORT))
+            print(f"[{self.addr}] Connected to SSH backend")
+            
+            # Detect payload type and send appropriate response with banner
+            response = self.generate_universal_response(request_str)
+            
+            if response:
+                self.client.sendall(response)
+                self.bytes_sent += len(response)
+                print(f"[{self.addr}] Sent response with banner headers: {len(response)} bytes")
+                
+            # Start bidirectional data piping with SSH parsing
+            print(f"[{self.addr}] Starting data tunnel with SSH auth monitoring...")
+            
+            # Create two threads for bidirectional communication
+            client_to_backend = threading.Thread(
+                target=self.pipe_data_with_parsing, 
+                args=(self.client, backend, "CLIENT->SSH", True),
+                daemon=True
+            )
+            backend_to_client = threading.Thread(
+                target=self.pipe_data_with_parsing, 
+                args=(backend, self.client, "SSH->CLIENT", False),
+                daemon=True
+            )
+            
+            client_to_backend.start()
+            backend_to_client.start()
+            
+            # Wait for either thread to finish
+            client_to_backend.join()
+            backend_to_client.join()
+            
+        except Exception as e:
+            print(f"[{self.addr}] Universal payload handler error: {e}")
+        finally:
+            try:
+                backend.close()
+            except:
+                pass
+                
+    def generate_universal_response(self, request_str):
+        """Generate appropriate response based on request format with custom banner in headers"""
+        request_lower = request_str.lower()
+        
+        # Check for WebSocket upgrade
+        if 'upgrade: websocket' in request_lower or 'upgrade:websocket' in request_lower:
+            return self.create_websocket_response(request_str)
+        
+        # Check for HTTP request (GET, POST, PUT, etc.)
+        elif any(request_str.startswith(method) for method in ['GET', 'POST', 'PUT', 'HEAD', 'OPTIONS']):
+            return self.create_http_response_with_banner(request_str)
+        
+        # Check for CONNECT method (HTTP tunnel)
+        elif request_str.startswith('CONNECT'):
+            return self.create_connect_response_with_banner()
+        
+        # Raw data or custom protocol - send minimal response with banner headers
+        else:
+            print(f"[{self.addr}] Raw/Custom protocol detected")
+            return self.create_generic_response_with_banner()
+    
+    def create_websocket_response(self, request_str):
+        """Create WebSocket handshake response with banner in headers only"""
+        print(f"[{self.addr}] WebSocket upgrade detected")
+        
+        # Extract WebSocket key
+        ws_key_match = re.search(r'sec-websocket-key:\s*([^\r\n]+)', request_str, re.IGNORECASE)
+        
+        if ws_key_match:
+            ws_key = ws_key_match.group(1).strip()
+            # Generate proper accept key
+            accept_key = base64.b64encode(
+                hashlib.sha1((ws_key + WS_MAGIC_STRING).encode()).digest()
+            ).decode()
+            
+            response = (
+                f"HTTP/1.1 101 {CUSTOM_BANNER_TEXT}\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                f"Sec-WebSocket-Accept: {accept_key}\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                f"Server: {SERVER_NAME}\r\n"
+                f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+                f"X-Tunnel-Status: WebSocket SSH Active\r\n"
+                f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+                f"X-Connection-Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC')}\r\n"
+                "\r\n"
+            ).encode()
+        else:
+            # Fallback WebSocket response
+            response = (
+                f"HTTP/1.1 101 {CUSTOM_BANNER_TEXT}\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                f"Server: {SERVER_NAME}\r\n"
+                f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+                f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+                "\r\n"
+            ).encode()
+        
+        return response
+    
+    def create_http_response_with_banner(self, request_str):
+        """Create HTTP response with banner in headers and status line"""
+        print(f"[{self.addr}] HTTP request detected")
+        
+        # Check if it's asking for upgrade but not WebSocket
+        if 'connection: upgrade' in request_str.lower():
+            response = (
+                f"HTTP/1.1 101 {CUSTOM_BANNER_TEXT}\r\n"
+                "Connection: Upgrade\r\n"
+                f"Server: {SERVER_NAME}\r\n"
+                f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+                f"X-Tunnel-Status: HTTP SSH Tunnel Active\r\n"
+                f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+                f"X-Connection-Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC')}\r\n"
+                "Content-Length: 0\r\n"
+                "\r\n"
+            ).encode()
+        else:
+            # Standard HTTP response with banner in headers only
+            response = (
+                f"HTTP/1.1 200 {CUSTOM_BANNER_TEXT}\r\n"
+                "Content-Type: text/plain\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: keep-alive\r\n"
+                f"Server: {SERVER_NAME}\r\n"
+                f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+                f"X-SSH-Status: Tunnel Ready\r\n"
+                f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+                f"X-Connection-Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC')}\r\n"
+                f"X-Encryption: AES-256\r\n"
+                f"X-Protocol: SSH-2.0\r\n"
+                f"X-Status: ONLINE\r\n"
+                "\r\n"
+            ).encode()
+        
+        return response
+    
+    def create_connect_response_with_banner(self):
+        """Create CONNECT response with banner in headers"""
+        print(f"[{self.addr}] HTTP CONNECT tunnel detected")
+        return (
+            f"HTTP/1.1 200 {CUSTOM_BANNER_TEXT}\r\n"
+            f"Server: {SERVER_NAME}\r\n"
+            f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+            f"X-Tunnel-Type: SSH-over-HTTP\r\n"
+            f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+            f"X-Connection-Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC')}\r\n"
+            f"X-Tunnel-Status: CONNECT Active\r\n"
+            f"X-Encryption: Military Grade\r\n"
+            "Proxy-Connection: keep-alive\r\n"
+            "\r\n"
+        ).encode()
+    
+    def create_generic_response_with_banner(self):
+        """Create generic response with banner headers for unknown protocols"""
+        return (
+            f"HTTP/1.1 101 {CUSTOM_BANNER_TEXT}\r\n"
+            f"Server: {SERVER_NAME}\r\n"
+            f"X-SSH-Banner: {SERVER_BANNER}\r\n"
+            f"X-Protocol: SSH-Universal-Tunnel\r\n"
+            f"X-Server-Message: {CUSTOM_BANNER_TEXT}\r\n"
+            f"X-Connection-Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC')}\r\n"
+            f"X-Tunnel-Status: Generic Active\r\n"
+            f"X-Bandwidth: Unlimited\r\n"
+            f"X-Security: Premium\r\n"
+            "Content-Length: 104857600000\r\n"
+            "\r\n"
+        ).encode()
+    
+    def pipe_data_with_parsing(self, src, dst, direction, is_outbound):
+        """Pipe data between sockets with SSH protocol parsing and byte counting"""
+        bytes_transferred = 0
+        try:
+            while True:
+                ready = select.select([src], [], [], TIMEOUT)
+                if ready[0]:
+                    data = src.recv(BUFLEN)
+                    if not data:
+                        break
+                    
+                    # Parse SSH data if parser is available
+                    if self.ssh_parser:
+                        parsed_data = self.ssh_parser.parse_ssh_packet(data, direction)
+                        dst.sendall(parsed_data)
+                    else:
+                        dst.sendall(data)
+                    
+                    bytes_transferred += len(data)
+                    
+                    # Update byte counters
+                    if is_outbound:
+                        self.bytes_sent += len(data)
+                    else:
+                        self.bytes_received += len(data)
+                else:
+                    # Timeout occurred
+                    break
+        except Exception as e:
+            print(f"[{self.addr}] {direction} pipe error: {e}")
+        finally:
+            print(f"[{self.addr}] {direction} transferred: {bytes_transferred} bytes")
+            try:
+                src.shutdown(socket.SHUT_RD)
+            except:
+                pass
+            try:
+                dst.shutdown(socket.SHUT_WR)
+            except:
+                pass
+
+def show_ssh_auth_logs():
+    """Show SSH authentication logs"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Get recent auth attempts
+        cursor.execute('''
+            SELECT real_ip, username, auth_method, auth_result, timestamp, session_id
+            FROM ssh_auth_attempts 
+            WHERE timestamp > datetime('now', '-24 hours')
+            ORDER BY timestamp DESC
+            LIMIT 50
+        ''')
+        
+        auth_attempts = cursor.fetchall()
+        conn.close()
+        
+        print("\n--- SSH Authentication Attempts (Last 24 hours) ---")
+        print("Real IP           | Username      | Method   | Result   | Timestamp           | Session")
+        print("-" * 95)
+        
+        for auth_data in auth_attempts:
+            real_ip, username, auth_method, auth_result, timestamp, session_id = auth_data
+            print(f"{real_ip:<17} | {username:<13} | {auth_method:<8} | {auth_result:<8} | {timestamp} | {session_id}")
+        
+        print(f"\nTotal auth attempts shown: {len(auth_attempts)}")
+        print("-" * 95)
+        
+    except Exception as e:
+        print(f"Error showing auth logs: {e}")
+
+def main():
+    print(f"\n:-------- Enhanced SSH WebSocket Proxy with Auth Logging --------:")
+    print(f"Listening addr: {LISTENING_ADDR}")
+    print(f"Listening port: {LISTENING_PORT}")
+    print(f"Backend SSH: {DEFAULT_HOST}:{DEFAULT_PORT}")
+    print(f"Connection log: {LOG_FILE}")
+    print(f"Auth log: {AUTH_LOG_FILE}")
+    print(f"Database: {DB_FILE}")
+    print(f"Banner Text: {CUSTOM_BANNER_TEXT}")
+    print(f"Server Banner: {SERVER_BANNER}")
+    print(f"Server Name: {SERVER_NAME}")
+    print(f"Mode: Real IP + SSH Authentication Logging")
+    print(f":----------------------------------------------------------------:\n")
+    
+    # Check for command line arguments
+    if len(sys.argv) > 2:
+        if sys.argv[2] == '--show-auth':
+            show_ssh_auth_logs()
+            return
+        elif sys.argv[2] == '--show-connections':
+            show_active_connections()
+            return
+    
+    connection_logger = ConnectionLogger()
+    auth_logger = SSHAuthLogger()
+    
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((LISTENING_ADDR, LISTENING_PORT))
+    s.listen(128)
+    
+    print(f"[SERVER] WebSocket SSH Proxy with Auth Logging started")
+    print(f"[SERVER] Monitoring SSH authentication attempts...")
+    print(f"[SERVER] Waiting for connections...\n")
+    
+    try:
+        while True:
+            c, addr = s.accept()
+            print(f"\n[NEW] Connection from {addr}")
+            handler = UniversalConnectionHandler(c, addr, connection_logger, auth_logger)
+            handler.start()
+                
+    except KeyboardInterrupt:
+        print("\nShutting down proxy...")
+        show_ssh_auth_logs()
+        show_active_connections()
+    finally:
+        s.close()
+
+def show_active_connections():
+    """Show currently active connections from database"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Get recent connections (last 24 hours)
+        cursor.execute('''
+            SELECT real_ip, connection_type, timestamp, bytes_sent, bytes_received, duration, user_agent
+            FROM connections 
+            WHERE timestamp > datetime('now', '-24 hours')
+            ORDER BY timestamp DESC
+            LIMIT 50
+        ''')
+        
+        connections = cursor.fetchall()
+        conn.close()
+        
+        print("\n--- Recent Connections (Last 24 hours) ---")
+        print("Real IP           | Type      | Time                | Bytes In/Out    | Duration | User Agent")
+        print("-" * 100)
+        
+        for conn_data in connections:
+            real_ip, conn_type, timestamp, bytes_sent, bytes_received, duration, user_agent = conn_data
+            ua_short = (user_agent[:30] + '..') if len(user_agent) > 30 else user_agent
+            print(f"{real_ip:<17} | {conn_type:<9} | {timestamp} | {bytes_received:<7}/{bytes_sent:<7} | {duration}s     | {ua_short}")
+        
+        print(f"\nTotal connections shown: {len(connections)}")
+        print("-" * 100)
+        
+    except Exception as e:
+        print(f"Error showing connections: {e}")
+
+if __name__ == '__main__':
+    main()
