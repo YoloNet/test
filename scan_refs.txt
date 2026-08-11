@@ -1,0 +1,736 @@
+.\BOT\server_status.sh:22:domain=$(cat /root/yoloautosc/domain)
+.\BOT\server_status.sh:25:tvmess=$(grep -c -E "^### $user" "/usr/local/etc/xray/config.json")
+.\BOT\server_status.sh:26:tvless=$(grep -c -E "^### $user" "/usr/local/etc/xray/vless.json")
+.\BOT\server_status.sh:27:ttrws=$(grep -c -E "^### $user" "/usr/local/etc/xray/trojanws.json")
+.\BOT\server_status.sh:28:ttr=$(grep -c -E "^### $user" "/usr/local/etc/xray/trojan.json")
+.\BOT\server_status.sh:48:TELEGRAM_BOT_TOKEN=$(cat /root/yoloautosc/tele_token.txt)
+.\BOT\server_status.sh:49:TELEGRAM_CHAT_ID=$(cat /root/yoloautosc/tele_id.txt)
+.\BOT\config_gen.sh:10:domain=$(cat /root/yoloautosc/domain)
+.\BOT\config_gen.sh:11:fastly_domain=$(cat /root/yoloautosc/fastly_domain)
+.\BOT\config_gen.sh:36:    local token=$(cat /root/yoloautosc/tele_token.txt)
+.\BOT\config_gen.sh:37:    local chat_id=$(cat /root/yoloautosc/tele_id.txt)
+.\BOT\config_gen.sh:49:    CLIENT_EXISTS=$(grep -w $user /usr/local/etc/xray/vless.json | wc -l)
+.\BOT\config_gen.sh:69:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/vless.json
+.\BOT\config_gen.sh:72:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/none.json
+.\BOT\config_gen.sh:75:systemctl restart xray
+.\BOT\config_gen.sh:76:systemctl restart xray@config
+.\BOT\config_gen.sh:77:systemctl restart xray@vless
+.\BOT\config_gen.sh:78:systemctl restart xray@none
+.\BOT\config_gen.sh:79:service cron restart
+.\BOT\autocek_online.sh:7:    echo -n > /root/vmessonline.txt
+.\BOT\autocek_online.sh:8:    data=( `cat /usr/local/etc/xray/config.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\BOT\autocek_online.sh:14:        data2=( $(cat /var/log/xray/access.log | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | sort -u) )
+.\BOT\autocek_online.sh:18:            jum=$(cat /var/log/xray/access.log | grep -Fw "$akun" | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | grep -Fw "$ip" | sort -u)
+.\BOT\autocek_online.sh:30:    echo $totaluseronlinevmess > /root/vmessonline.txt # // save the total online user
+.\BOT\autocek_online.sh:38:    echo -n > /root/vlessonline.txt # save the total vless user online to the file
+.\BOT\autocek_online.sh:39:    data=( `cat /usr/local/etc/xray/vless.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\BOT\autocek_online.sh:46:        data2=( $(cat /var/log/xray/access2.log | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | sort -u) )
+.\BOT\autocek_online.sh:50:            jum=$(cat /var/log/xray/access2.log | grep -Fw "$akun" | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | grep -Fw "$ip" | sort -u)
+.\BOT\autocek_online.sh:62:    echo $totaluseronlinevless > /root/vlessonline.txt # // save the total online user
+.\BOT\autocek_online.sh:71:    echo -n > /root/trojanxtlsonline.txt # save the total vless user online to the file
+.\BOT\autocek_online.sh:72:    data=( $(cat /usr/local/etc/xray/xtrojan.json | grep '^###' | awk '{print $2}' | sort -u) )
+.\BOT\autocek_online.sh:79:        data2=( $(cat /var/log/xray/access5.log | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | sort -u) )
+.\BOT\autocek_online.sh:83:            jum=$(cat /var/log/xray/access5.log | grep -w "$akun" | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | grep -w "$ip" | sort -u)
+.\BOT\autocek_online.sh:95:    echo $totaluseronlinextrojan > /root/trojanxtlsonline.txt # // save the total online user
+.\BOT\autocek_online.sh:104:    echo -n > /root/trojanwsonline.txt # save the total vless user online to the file
+.\BOT\autocek_online.sh:105:    data=( $(cat /usr/local/etc/xray/trojanws.json | grep '^###' | awk '{print $2}' | sort -u) )
+.\BOT\autocek_online.sh:112:        data2=( $(cat /var/log/xray/access3.log | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | sort -u) )
+.\BOT\autocek_online.sh:116:            jum=$(cat /var/log/xray/access3.log | grep -w "$akun" | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | grep -w "$ip" | sort -u)
+.\BOT\autocek_online.sh:128:    echo $totaluseronlinextrojan > /root/trojanwsonline.txt # // save the total online user
+.\BOT\autocek_online.sh:136:    echo -n > /root/trojanonline.txt # save the total vless user online to the file
+.\BOT\autocek_online.sh:137:    data=( $(cat /usr/local/etc/xray/trojan.json | grep '^###' | awk '{print $2}' | sort -u) )
+.\BOT\autocek_online.sh:144:        data2=( $(cat /var/log/xray/access4.log | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | sort -u) )
+.\BOT\autocek_online.sh:148:            jum=$(cat /var/log/xray/access4.log | grep -w "$akun" | tail -n 500 | awk '{print $3}' | sed 's/tcp://g' | cut -d ":" -f 1 | grep -w "$ip" | sort -u)
+.\BOT\autocek_online.sh:160:    echo $totaluseronlinetrojan > /root/trojanonline.txt # // save the total online user
+.\BOT\autocek_online.sh:175:echo $ttoday > /root/datausedaily.txt
+.\BOT\autocek_online.sh:176:echo $tmon > /root/datausedmonthly.txt
+.\BACKUP\restore_tele.sh:43:TELEGRAM_BOT_TOKEN=$(cat /root/yoloautosc/tele_token.txt)
+.\BACKUP\restore_tele.sh:44:TELEGRAM_CHAT_ID=$(cat /root/yoloautosc/tele_id.txt)
+.\BACKUP\restore_tele.sh:84:#cp -r /root/backup/.acme.sh /root/ &> /dev/null
+.\BACKUP\restore_tele.sh:85:#cp -r /root/backup/premium-script /var/lib/ &> /dev/null
+.\BACKUP\restore_tele.sh:86:#cp -r /root/backup/xray /usr/local/etc/ &> /dev/null
+.\BACKUP\restore_tele.sh:87:cp -r /root/root/backup/*.json /usr/local/etc/xray/
+.\BACKUP\restore_tele.sh:88:cp -r /root/root/backup/public_html /home/vps/ &> /dev/null
+.\BACKUP\restore_tele.sh:89:cp -r /root/root/backup/crontab /etc/ &> /dev/null
+.\BACKUP\restore_tele.sh:90:cp -r /root/root/backup/cron.d /etc/ &> /dev/null
+.\BACKUP\restore_tele.sh:91:rm -rf /root/root/backup
+.\BACKUP\restore_tele.sh:97:systemctl restart nginx
+.\BACKUP\restore_tele.sh:98:systemctl restart xray.service
+.\BACKUP\restore_tele.sh:99:systemctl restart xray@config.service
+.\BACKUP\restore_tele.sh:100:systemctl restart xray@none.service
+.\BACKUP\restore_tele.sh:101:systemctl restart xray@vless.service
+.\BACKUP\restore_tele.sh:102:service cron restart
+.\setup-lite.sh:52:if [ "$(systemd-detect-virt)" == "openvz" ]; then
+.\setup-lite.sh:67:if [ -f "/usr/local/etc/xray/domain" ]; then
+.\setup-lite.sh:73:mkdir /var/lib/premium-script;
+.\setup-lite.sh:74:mkdir /var/lib/crot-script;
+.\setup-lite.sh:75:mkdir /usr/local/etc/xray;
+.\setup-lite.sh:76:mkdir /root/yoloautosc;
+.\setup-lite.sh:81:echo "${install_link_url}" > /root/install_link.txt
+.\setup-lite.sh:82:Server_URL="$(cat /root/install_link.txt )"
+.\setup-lite.sh:108:# / / saving information to /var/lib
+.\setup-lite.sh:109:echo "IP=$host" > /var/lib/premium-script/ipvps.conf
+.\setup-lite.sh:110:echo "IP=$host" > /var/lib/crot-script/ipvps.conf
+.\setup-lite.sh:111:echo "$host" > /root/domain
+.\setup-lite.sh:112:domaiin=$(cat /root/domain)
+.\setup-lite.sh:113:echo "$domaiin" > /root/domain
+.\setup-lite.sh:114:echo "$domaiin" > /root/yoloautosc/domain
+.\setup-lite.sh:115:echo "$tele_token" > /root/yoloautosc/tele_token.txt
+.\setup-lite.sh:116:echo "$tele_id" > /root/yoloautosc/tele_id.txt
+.\setup-lite.sh:117:echo "$clientname" > /root/yoloautosc/clientname.conf
+.\setup-lite.sh:125:echo "$srvrisp" >> /usr/local/etc/serverisp.txt
+.\setup-lite.sh:126:echo "$srvrcountry" >> /usr/local/etc/servercountry.txt
+.\setup-lite.sh:194:echo "0 6 * * * root reboot" >> /etc/crontab
+.\setup-lite.sh:195:echo "*/2 * * * * root /usr/bin/cleaner" >> /etc/crontab
+.\setup-lite.sh:196:echo "@hourly root /usr/bin/backup_tele" >> /etc/crontab
+.\setup-lite.sh:197:echo "*/2 * * * * root /usr/bin/anti-highusage" >> /etc/crontab #/ / Every 2 minute
+.\setup-lite.sh:198:echo "*/62 * * * * root /usr/bin/server_status" >> /etc/crontab # / / Every 62 Minutes
+.\setup-lite.sh:201:rm -f /root/ins-xray.sh
+.\setup-lite.sh:202:rm -f /root/set-br.sh
+.\setup-lite.sh:203:rm -f /root/ssh-vpn.sh
+.\setup-lite.sh:204:rm -f /root/setup-caddy.sh
+.\setup-lite.sh:218:echo "    >>> Service Details <<<"  | tee -a log-install.txt
+.\setup-lite.sh:265:echo "   - Installation Log --> /root/log-install.txt"  | tee -a log-install.txt
+.\BACKUP\restoregithub.sh:8:echo $Name > /usr/local/etc/.$Name.ini
+.\BACKUP\restoregithub.sh:9:CekOne=$(cat /usr/local/etc/.$Name.ini)
+.\BACKUP\restoregithub.sh:20:namaklien=$(cat /root/yoloautosc/clientname.conf)
+.\BACKUP\restoregithub.sh:33:[[ ! -d /root/backup ]] && mkdir -p /root/backup
+.\BACKUP\restoregithub.sh:34:wget -q -O /root/backup/backup.zip "https://raw.githubusercontent.com/YoloNet/user-manual-backup/main/$namaklien/$namaklien.zip" &> /dev/null
+.\BACKUP\restoregithub.sh:36:unzip -P $InputPass /root/backup/backup.zip &> /dev/null
+.\BACKUP\restoregithub.sh:38:rm -f /root/backup/backup.zip &> /dev/null
+.\BACKUP\restoregithub.sh:40:cd /root/backup
+.\BACKUP\restoregithub.sh:42:cp -r /root/backup/premium-script /var/lib/ &> /dev/null
+.\BACKUP\restoregithub.sh:43:cp -r /root/backup/xray /usr/local/etc/ &> /dev/null
+.\BACKUP\restoregithub.sh:44:cp -r /root/backup/public_html /home/vps/ &> /dev/null
+.\BACKUP\restoregithub.sh:45:cp -r /root/backup/crontab /etc/ &> /dev/null
+.\BACKUP\restoregithub.sh:46:cp -r /root/backup/cron.d /etc/ &> /dev/null
+.\BACKUP\restoregithub.sh:47:rm -rf /root/backup &> /dev/null
+.\BACKUP\restoregithub.sh:54:systemctl restart nginx
+.\BACKUP\restoregithub.sh:55:systemctl restart xray.service
+.\BACKUP\restoregithub.sh:56:systemctl restart xray@none.service
+.\BACKUP\restoregithub.sh:57:systemctl restart xray@vless.service
+.\BACKUP\restoregithub.sh:58:systemctl restart xray@vnone.service
+.\BACKUP\restoregithub.sh:59:systemctl restart xray@trojanws.service
+.\BACKUP\restoregithub.sh:60:systemctl restart xray@trnone.service
+.\BACKUP\restoregithub.sh:61:systemctl restart xray@xtls.service
+.\BACKUP\restoregithub.sh:62:systemctl restart xray@trojan.service
+.\BACKUP\restoregithub.sh:63:systemctl restart trojan-go.service
+.\BACKUP\restoregithub.sh:64:service cron restart
+.\BACKUP\restoregithub.sh:69:rm -f /root/backup/backup.zip &> /dev/null
+.\SSH\xp.sh:5:data=( `cat /usr/local/etc/xray/vless.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\SSH\xp.sh:9:exp=$(grep -w "^### $user" "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sort | uniq)
+.\SSH\xp.sh:14:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/vless.json
+.\SSH\xp.sh:15:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/none.json
+.\SSH\xp.sh:17:systemctl restart xray@vless.service
+.\SSH\xp.sh:18:systemctl restart xray@vnone.service
+.\SSH\xp.sh:23:data=( `cat /usr/local/etc/xray/config.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\SSH\xp.sh:27:exp=$(grep -w "^### $user" "/usr/local/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+.\SSH\xp.sh:32:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/config.json
+.\SSH\xp.sh:34:systemctl restart xray@xtls.service
+.\SSH\info.sh:5:cat /root/log-install.txt
+.\XRAY\user-xray.sh:5:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/config.json")
+.\XRAY\user-xray.sh:27:    user=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sed -n "${i}"p)
+.\XRAY\user-xray.sh:28:    exp=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 3 | sed -n "${i}"p)
+.\XRAY\user-xray.sh:70:user=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\user-xray.sh:72:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\user-xray.sh:73:uuid=$(grep "},{" /usr/local/etc/xray/config.json | cut -b 11-46 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\user-xray.sh:74:exp=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\BACKUP\restore.sh:19:cp -r /root/backup/premium-script /var/lib/ &> /dev/null
+.\BACKUP\restore.sh:20:cp -r /root/backup/xray /usr/local/etc/ &> /dev/null
+.\BACKUP\restore.sh:21:cp -r /root/backup/public_html /home/vps/ &> /dev/null
+.\BACKUP\restore.sh:22:cp -r /root/backup/crontab /etc/ &> /dev/null
+.\BACKUP\restore.sh:23:cp -r /root/backup/cron.d /etc/ &> /dev/null
+.\BACKUP\restore.sh:24:rm -rf /root/backup
+.\BACKUP\restore.sh:30:systemctl restart nginx
+.\BACKUP\restore.sh:31:systemctl restart xray.service
+.\BACKUP\restore.sh:32:systemctl restart xray@none.service
+.\BACKUP\restore.sh:33:systemctl restart xray@vless.service
+.\BACKUP\restore.sh:34:systemctl restart xray@vnone.service
+.\BACKUP\restore.sh:35:systemctl restart xray@trojanws.service
+.\BACKUP\restore.sh:36:systemctl restart xray@trnone.service
+.\BACKUP\restore.sh:37:systemctl restart xray@xtls.service
+.\BACKUP\restore.sh:38:systemctl restart xray@trojan.service
+.\BACKUP\restore.sh:39:systemctl restart trojan-go.service
+.\BACKUP\restore.sh:40:service cron restart
+.\OTHERS\xray.conf:5:             ssl_certificate /usr/local/etc/xray/xray.crt;
+.\OTHERS\xray.conf:6:             ssl_certificate_key /usr/local/etc/xray/xray.key;
+.\BOT\anti-highusage.sh:4:TELEGRAM_BOT_TOKEN=$(cat /root/yoloautosc/tele_token.txt)
+.\BOT\anti-highusage.sh:5:TELEGRAM_CHAT_ID=$(cat /root/yoloautosc/tele_id.txt)
+.\ServerInfo.txt:1:log file /var/log/xray/
+.\XRAY\user-vless.sh:5:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/vless.json")
+.\XRAY\user-vless.sh:27:    user=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2 | sed -n "${i}"p)
+.\XRAY\user-vless.sh:28:    exp=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${i}"p)
+.\XRAY\user-vless.sh:70:user=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\user-vless.sh:73:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\user-vless.sh:74:uuid=$(grep "},{" /usr/local/etc/xray/vless.json | cut -b 11-46 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\user-vless.sh:75:exp=$(grep -E "### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\SSH\status.sh:14:status="$(systemctl show cron.service --no-page)"
+.\SSH\status.sh:23:status="$(systemctl show nginx.service --no-page)"
+.\SSH\status.sh:32:status="$(systemctl show fail2ban.service --no-page)"
+.\SSH\status.sh:41:status="$(systemctl show xray.service --no-page)"
+.\SSH\status.sh:50:status="$(systemctl show xray@none.service --no-page)"
+.\SSH\status.sh:59:status="$(systemctl show xray@vless.service --no-page)"
+.\SSH\status.sh:68:status="$(systemctl show xray@config.service --no-page)"
+.\SSH\status.sh:77:status="$(systemctl show ssh.service --no-page)"
+.\SSH\status.sh:86:status="$(systemctl show --now openvpn-server@server-tcp-1194 --no-page)"
+.\SSH\status.sh:95:status="$(systemctl show --now openvpn-server@server-udp-2200 --no-page)"
+.\SSH\status.sh:104:status="$(systemctl show stunnel4.service --no-page)"
+.\SSH\status.sh:113:status="$(systemctl show dropbear.service --no-page)"
+.\SSH\status.sh:122:status="$(systemctl show server-sldns.service --no-page)"
+.\SSH\status.sh:123:#status="$(systemctl show client-sldns.service --no-page)"
+.\SSH\status.sh:132:status="$(systemctl show udp-custom.service --no-page)"
+.\SSH\status.sh:141:status="$(systemctl show ws-http.service --no-page)"
+.\SSH\status.sh:150:status="$(systemctl show ws-https.service --no-page)"
+.\SSH\status.sh:159:status="$(systemctl show ws-ovpn.service --no-page)"
+.\SSH\status.sh:168:status="$(systemctl show ohps.service --no-page)"
+.\SSH\status.sh:177:status="$(systemctl show ohpd.service --no-page)"
+.\SSH\status.sh:186:status="$(systemctl show ohp.service --no-page)"
+.\SSH\status.sh:195:status="$(systemctl show squid.service --no-page)"
+.\SSH\dns.sh:73:sudo systemctl restart resolvconf.service > /dev/null 
+.\SSH\dns.sh:96:sudo systemctl enable resolvconf.service > /dev/null && clear -x && sudo systemctl start resolvconf.service > /dev/null
+.\SSH\dns.sh:103:sudo systemctl restart resolvconf.service > /dev/null 
+.\SSH\dns.sh:205:echo $country_name > /root/kontold/country.txt
+.\SSH\dns.sh:206:proxylocation=$(cat /root/kontold/country.txt)
+.\SSH\dns.sh:211:printf '%s\n' "$list" > /root/domains.txt
+.\SSH\dns.sh:214:fileName="/root/domains.txt"
+.\SSH\dns.sh:341:echo $country_name > /root/kontold/country.txt
+.\SSH\dns.sh:342:proxylocation=$(cat /root/kontold/country.txt)
+.\SSH\dns.sh:347:printf '%s\n' "$url" > /root/domains.txt
+.\SSH\dns.sh:350:fileName="/root/domains.txt"
+.\SSH\dns.sh:476:echo $country_name > /root/kontold/country.txt
+.\SSH\dns.sh:477:proxylocation=$(cat /root/kontold/country.txt)
+.\SSH\dns.sh:485:printf '%s\n' "$url" > /root/domains.txt
+.\SSH\dns.sh:488:fileName="/root/domains.txt"
+.\OTHERS\vps.conf:4:  access_log /var/log/nginx/vps-access.log;
+.\OTHERS\vps.conf:5:  error_log /var/log/nginx/vps-error.log error;
+.\OTHERS\vps.conf:14:    include /etc/nginx/fastcgi_params;
+.\BACKUP\logcleaner.sh:4:data=(`find /var/log/ -name '*.log'`);
+.\BACKUP\logcleaner.sh:10:data=(`find /var/log/ -name '*.err'`);
+.\BACKUP\logcleaner.sh:16:data=(`find /var/log/ -name 'mail.*'`);
+.\BACKUP\logcleaner.sh:22:echo > /var/log/syslog
+.\BACKUP\logcleaner.sh:23:echo > /var/log/btmp
+.\BACKUP\logcleaner.sh:24:echo > /var/log/messages
+.\BACKUP\logcleaner.sh:25:echo > /var/log/debug
+.\MENU\sshovpn\clear-log.sh:19:data=(`find /var/log/ -name *.log`);
+.\MENU\sshovpn\clear-log.sh:25:data=(`find /var/log/ -name *.err`);
+.\MENU\sshovpn\clear-log.sh:31:data=(`find /var/log/ -name mail.*`);
+.\MENU\sshovpn\clear-log.sh:37:echo > /var/log/syslog
+.\MENU\sshovpn\clear-log.sh:38:echo > /var/log/btmp
+.\MENU\sshovpn\clear-log.sh:39:echo > /var/log/messages
+.\MENU\sshovpn\clear-log.sh:40:echo > /var/log/debug
+.\XRAY\renew-xray.sh:7:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/config.json")
+.\XRAY\renew-xray.sh:23:	grep -E "^### " "/usr/local/etc/xray/xtls.json" | cut -d ' ' -f 2-3 | nl -s ') '
+.\XRAY\renew-xray.sh:32:user=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\renew-xray.sh:33:exp=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\renew-xray.sh:40:sed -i "s/### $user $exp/### $user $exp4/g" /usr/local/etc/xray/config.json
+.\XRAY\renew-xray.sh:41:systemctl restart xray@xtls.service
+.\XRAY\renew-xray.sh:42:service cron restart
+.\SSH\restart.sh:8:systemctl restart --now openvpn-server@server-tcp-1194
+.\SSH\restart.sh:9:systemctl restart --now openvpn-server@server-udp-2200
+.\SSH\restart.sh:14:systemctl restart xray.service
+.\SSH\restart.sh:15:systemctl restart xray@vless.service
+.\SSH\restart.sh:16:systemctl restart xray@none.service
+.\SSH\restart.sh:17:systemctl restart xray@xtls.service
+.\SSH\restart.sh:18:systemctl restart ws-http
+.\SSH\restart.sh:19:systemctl restart ws-https
+.\SSH\restart.sh:20:systemctl restart ohp
+.\SSH\restart.sh:21:systemctl restart ohpd
+.\SSH\restart.sh:22:systemctl restart ohps
+.\SSH\restart.sh:23:systemctl restart cdn-dropbear
+.\SSH\restart.sh:24:systemctl restart cdn-ovpn
+.\SSH\restart.sh:25:systemctl restart cdn-ssl
+.\SSH\restart.sh:26:systemctl restart client-sldns
+.\SSH\restart.sh:27:systemctl restart server-sldns
+.\MENU\sshovpn\webmin.sh:29:rm -f /root/jcameron-key.asc
+.\MENU\sshovpn\webmin.sh:40:service webmin restart > /dev/null 2>&1
+.\SETUP\ohp.sh:13:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\ohp.sh:27:wget -O /usr/local/bin/ohpd "https://${Server_URL}/SETUP/ohpd"
+.\SETUP\ohp.sh:28:chmod +x /usr/local/bin/ohpd
+.\SETUP\ohp.sh:30:#Buat Service Untuk OHP Dropbear
+.\SETUP\ohp.sh:31:cat > /etc/systemd/system/ohpd.service <<END
+.\SETUP\ohp.sh:39:ExecStart=/usr/local/bin/ohpd -port 8585 -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:109
+.\SETUP\ohp.sh:47:systemctl daemon-reload
+.\SETUP\ohp.sh:48:systemctl enable ohpd
+.\SETUP\ohp.sh:49:systemctl restart ohpd
+.\MENU\sshovpn\ceklim.sh:17:if [ -e "/root/log-limit.txt" ]; then
+.\MENU\sshovpn\ceklim.sh:21:cat /root/log-limit.txt
+.\SSH\add-host.sh:9:rm -f /var/lib/crot-script/ipvps.conf
+.\SSH\add-host.sh:10:rm -f /var/lib/premium-script/ipvps.conf
+.\SSH\add-host.sh:11:rm -f /usr/local/etc/xray/domain
+.\SSH\add-host.sh:12:rm -f /root/yoloautosc/domain
+.\SSH\add-host.sh:15:echo "IP=$host" >> /var/lib/crot-script/ipvps.conf
+.\SSH\add-host.sh:16:echo "IP=$host" >> /var/lib/premium-script/ipvps.conf
+.\SSH\add-host.sh:17:echo "$host" > /usr/local/etc/xray/domain
+.\SSH\add-host.sh:18:echo "$host" > /root/yoloautosc/domain
+.\SSH\add-host.sh:23:source /var/lib/premium-script/ipvps.conf
+.\SSH\add-host.sh:24:domain=$(cat /root/yoloautosc/domain)
+.\SSH\add-host.sh:25:systemctl stop nginx
+.\SSH\add-host.sh:26:systemctl stop xray.service
+.\SSH\add-host.sh:27:systemctl stop xray@none.service
+.\SSH\add-host.sh:28:systemctl stop xray@vless.service
+.\SSH\add-host.sh:29:systemctl stop xray@xtls.service
+.\SSH\add-host.sh:31:rm -r /root/.acme.sh
+.\SSH\add-host.sh:33:mkdir /root/.acme.sh
+.\SSH\add-host.sh:34:curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+.\SSH\add-host.sh:35:chmod +x /root/.acme.sh/acme.sh
+.\SSH\add-host.sh:36:/root/.acme.sh/acme.sh --upgrade --auto-upgrade
+.\SSH\add-host.sh:37:/root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+.\SSH\add-host.sh:38:/root/.acme.sh/acme.sh --issue -d $domain -d sshws.$domain --standalone -k ec-256 --listen-v6
+.\SSH\add-host.sh:39:~/.acme.sh/acme.sh --installcert -d $domain -d sshws.$domain --fullchainpath /usr/local/etc/xray/xray.crt --keypath /usr/local/etc/xray/xray.key --ecc
+.\SSH\add-host.sh:40:chmod 755 /usr/local/etc/xray/xray.key;
+.\SSH\add-host.sh:41:service squid start
+.\SSH\add-host.sh:42:systemctl restart nginx
+.\SSH\add-host.sh:46:systemctl restart nginx
+.\SSH\add-host.sh:48:systemctl restart xray.service
+.\SSH\add-host.sh:50:systemctl restart xray@none.service
+.\SSH\add-host.sh:52:systemctl restart xray@vless.service
+.\SSH\add-host.sh:54:systemctl restart xray@xtls.service
+.\XRAY\renew-vless.sh:7:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/vless.json")
+.\XRAY\renew-vless.sh:23:	grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2-3 | nl -s ') '
+.\XRAY\renew-vless.sh:32:user=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\renew-vless.sh:33:exp=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\renew-vless.sh:40:sed -i "s/### $user $exp/### $user $exp4/g" /usr/local/etc/xray/vless.json
+.\XRAY\renew-vless.sh:41:sed -i "s/### $user $exp/### $user $exp4/g" /usr/local/etc/xray/none.json
+.\XRAY\renew-vless.sh:42:systemctl restart xray@vless.service
+.\XRAY\renew-vless.sh:43:systemctl restart xray@vnone.service
+.\XRAY\renew-vless.sh:44:service cron restart
+.\BACKUP\backup_tele.sh:18:domain=$(cat /root/yoloautosc/domain)
+.\BACKUP\backup_tele.sh:22:tvless=$(grep -c -E "^### $user" "/usr/local/etc/xray/vless.json")
+.\BACKUP\backup_tele.sh:23:ttxtls=$(grep -c -E "^### $user" "/usr/local/etc/xray/config.json")
+.\BACKUP\backup_tele.sh:32:mkdir -p /root/backup
+.\BACKUP\backup_tele.sh:36:cp -r /usr/local/etc/xray/*.json /root/backup/ >/dev/null 2>&1
+.\BACKUP\backup_tele.sh:37:cp -r /root/domain /root/backup/ &> /dev/null
+.\BACKUP\backup_tele.sh:38:cp -r /home/vps/public_html /root/backup/public_html
+.\BACKUP\backup_tele.sh:39:cp -r /etc/cron.d /root/backup/cron.d &> /dev/null
+.\BACKUP\backup_tele.sh:40:cp -r /etc/crontab /root/backup/crontab &> /dev/null
+.\BACKUP\backup_tele.sh:44:zip -r $zip_filename /root/backup > /dev/null 2>&1
+.\BACKUP\backup_tele.sh:47:TELEGRAM_BOT_TOKEN=$(cat /root/yoloautosc/tele_token.txt)
+.\BACKUP\backup_tele.sh:48:TELEGRAM_CHAT_ID=$(cat /root/yoloautosc/tele_id.txt)
+.\BACKUP\backup_tele.sh:61:curl -s -F "chat_id=${TELEGRAM_CHAT_ID}" -F "document=@/root/${zip_filename}" -F "caption=${CAPTION}" "${TELEGRAM_API_URL}" > /dev/null
+.\BACKUP\backup_tele.sh:67:rm -rf /root/backup
+.\BACKUP\backup_tele.sh:68:rm -r /root/${zip_filename}
+.\SETUP\websocket-python\websocket.sh:1:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\websocket-python\websocket.sh:10:cat <<EOF> /etc/systemd/system/ws-https.service
+.\SETUP\websocket-python\websocket.sh:23:ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-https
+.\SETUP\websocket-python\websocket.sh:30:cat <<EOF> /etc/systemd/system/ws-http.service
+.\SETUP\websocket-python\websocket.sh:42:ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-http
+.\SETUP\websocket-python\websocket.sh:49:cat <<EOF> /etc/systemd/system/ws-ovpn.service
+.\SETUP\websocket-python\websocket.sh:61:ExecStart=/usr/bin/python3 -O /usr/local/bin/ws-ovpn 2097
+.\SETUP\websocket-python\websocket.sh:69:wget -q -O /usr/local/bin/ws-https https://${Server_URL}/SETUP/websocket-python/ws-https; chmod +x /usr/local/bin/ws-https
+.\SETUP\websocket-python\websocket.sh:72:wget -q -O /usr/local/bin/ws-http https://${Server_URL}/SETUP/websocket-python/ws-http; chmod +x /usr/local/bin/ws-http
+.\SETUP\websocket-python\websocket.sh:75:wget -q -O /usr/local/bin/ws-ovpn https://${Server_URL}/SETUP/websocket-python/ws-ovpn; chmod +x /usr/local/bin/ws-ovpn
+.\SETUP\websocket-python\websocket.sh:78:systemctl daemon-reload
+.\SETUP\websocket-python\websocket.sh:79:systemctl enable ws-https
+.\SETUP\websocket-python\websocket.sh:80:systemctl restart ws-https
+.\SETUP\websocket-python\websocket.sh:81:systemctl enable ws-http
+.\SETUP\websocket-python\websocket.sh:82:systemctl restart ws-http
+.\SETUP\websocket-python\websocket.sh:83:systemctl enable ws-ovpn
+.\SETUP\websocket-python\websocket.sh:84:systemctl restart ws-ovpn
+.\XRAY\del-xray.sh:7:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/config.json")
+.\XRAY\del-xray.sh:25:	grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2-3 | nl -s ') '
+.\XRAY\del-xray.sh:33:user=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\del-xray.sh:34:exp=$(grep -E "^### " "/usr/local/etc/xray/config.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\del-xray.sh:35:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/config.json
+.\XRAY\del-xray.sh:37:systemctl restart xray@xtls.service
+.\MENU\sshovpn\cek-ssh.sh:16:LOG_FILE="/var/log/websocket-proxy.log"
+.\MENU\sshovpn\cek-ssh.sh:17:DB_FILE="/var/log/websocket-connections.db"
+.\MENU\sshovpn\cek-ssh.sh:18:SSH_LOG="/var/log/auth.log"
+.\MENU\sshovpn\cek-ssh.sh:19:SECURE_LOG="/var/log/secure"
+.\BACKUP\backupgithub.sh:8:echo $Name > /usr/local/etc/.$Name.ini
+.\BACKUP\backupgithub.sh:9:CekOne=$(cat /usr/local/etc/.$Name.ini)
+.\BACKUP\backupgithub.sh:22:namaklien=$(cat /root/yoloautosc/clientname.conf)
+.\BACKUP\backupgithub.sh:31:mkdir -p /root/backup
+.\BACKUP\backupgithub.sh:35:cp -r /var/lib/premium-script/ /root/backup/premium-script
+.\BACKUP\backupgithub.sh:36:cp -r /usr/local/etc/xray /root/backup/xray
+.\BACKUP\backupgithub.sh:37:cp -r /home/vps/public_html /root/backup/public_html
+.\BACKUP\backupgithub.sh:38:cp -r /etc/cron.d /root/backup/cron.d &> /dev/null
+.\BACKUP\backupgithub.sh:39:cp -r /etc/crontab /root/backup/crontab &> /dev/null
+.\BACKUP\backupgithub.sh:46:git clone https://github.com/YoloNet/user-manual-backup.git /root/user-backup/ &> /dev/null
+.\BACKUP\backupgithub.sh:50:mkdir -p /root/user-backup/$namaklien
+.\BACKUP\backupgithub.sh:54:if [ ! -f "/root/user-backup/$namaklien/$namaklien-last-backup" ]; then
+.\BACKUP\backupgithub.sh:55:touch /root/user-backup/$namaklien/$namaklien-last-backup
+.\BACKUP\backupgithub.sh:59:" >> /root/user-backup/$namaklien/$namaklien-last-backup
+.\BACKUP\backupgithub.sh:60:mv /root/$namaklien.zip /root/user-backup/$namaklien/
+.\BACKUP\backupgithub.sh:64:    cd /root/user-backup
+.\BACKUP\backupgithub.sh:76:if [ ! -d "/root/user-backup/" ]; then
+.\BACKUP\backupgithub.sh:106:rm -rf /root/backup &> /dev/null
+.\BACKUP\backupgithub.sh:107:rm -rf /root/user-backup &> /dev/null
+.\BACKUP\backupgithub.sh:108:rm -f /root/$namaklien.zip &> /dev/null
+.\SETUP\ohp-ssh.sh:24:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\ohp-ssh.sh:27:wget -O /usr/local/bin/ohps "https://${Server_URL}/SETUP/ohps"
+.\SETUP\ohp-ssh.sh:28:chmod +x /usr/local/bin/ohps
+.\SETUP\ohp-ssh.sh:30:#Buat Service Untuk OHP SSH
+.\SETUP\ohp-ssh.sh:31:cat > /etc/systemd/system/ohps.service <<END
+.\SETUP\ohp-ssh.sh:39:ExecStart=/usr/local/bin/ohp -port 8686 -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:22
+.\SETUP\ohp-ssh.sh:47:systemctl daemon-reload
+.\SETUP\ohp-ssh.sh:48:systemctl enable ohps
+.\SETUP\ohp-ssh.sh:49:systemctl restart ohps
+.\XRAY\add-xray.sh:10:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\add-xray.sh:19:		CLIENT_EXISTS=$(grep -w $user /usr/local/etc/xray/config.json | wc -l)
+.\XRAY\add-xray.sh:58:},{"id": "'""$uuid""'","flow": "xtls-rprx-vision","email": "'""$user""'"' /usr/local/etc/xray/config.json
+.\XRAY\add-xray.sh:63:systemctl restart xray
+.\XRAY\add-xray.sh:64:systemctl restart xray@config
+.\XRAY\add-xray.sh:65:systemctl restart xray@vless
+.\XRAY\add-xray.sh:66:systemctl restart xray@none
+.\XRAY\add-xray.sh:67:service cron restart
+.\OTHERS\nginx.conf:24:  include /etc/nginx/mime.types;
+.\OTHERS\nginx.conf:26:  access_log /var/log/nginx/access.log;
+.\OTHERS\nginx.conf:27:  error_log /var/log/nginx/error.log;
+.\OTHERS\nginx.conf:52:  include /etc/nginx/conf.d/*.conf;
+.\BACKUP\backup.sh:11:mkdir /root/backup
+.\BACKUP\backup.sh:17:cp -r /var/lib/premium-script/ /root/backup/premium-script
+.\BACKUP\backup.sh:18:cp -r /usr/local/etc/xray /root/backup/xray
+.\BACKUP\backup.sh:19:cp -r /home/vps/public_html /root/backup/public_html
+.\BACKUP\backup.sh:20:cp -r /etc/cron.d /root/backup/cron.d &> /dev/null
+.\BACKUP\backup.sh:21:cp -r /etc/crontab /root/backup/crontab &> /dev/null
+.\BACKUP\backup.sh:24:rclone copy /root/$IP-$date.zip dr:backup/
+.\BACKUP\backup.sh:39:rm -rf /root/backup
+.\BACKUP\backup.sh:40:rm -r /root/$IP-$date.zip
+.\XRAY\del-vless.sh:7:NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/usr/local/etc/xray/vless.json")
+.\XRAY\del-vless.sh:25:	grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2-3 | nl -s ') '
+.\XRAY\del-vless.sh:33:user=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 2 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\del-vless.sh:34:exp=$(grep -E "^### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
+.\XRAY\del-vless.sh:35:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/vless.json
+.\XRAY\del-vless.sh:36:sed -i "/^### $user $exp/,/^},{/d" /usr/local/etc/xray/none.json
+.\XRAY\del-vless.sh:38:systemctl restart xray@vless.service
+.\XRAY\del-vless.sh:39:systemctl restart xray@none.service
+.\SSHWS-SETUP\vpn.sh:14:domain=$(cat /root/domain)
+.\SSHWS-SETUP\vpn.sh:34:systemctl enable --now openvpn-server@server-tcp-1194
+.\SSHWS-SETUP\vpn.sh:35:systemctl enable --now openvpn-server@server-udp-2200
+.\SSHWS-SETUP\vpn.sh:152:# Restart service openvpn
+.\SSHWS-SETUP\vpn.sh:153:systemctl enable openvpn
+.\SSHWS-SETUP\vpn.sh:154:systemctl start openvpn
+.\SSHWS-SETUP\vpn.sh:159:rm -f /root/vpn.sh
+.\MENU\sshovpn\autokill.sh:17:cek=$(grep -c -E "^# Autokill" /etc/cron.d/tendang)
+.\MENU\sshovpn\autokill.sh:44:                echo > /etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:45:                echo "# Autokill" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:46:                echo "*/5 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:60:                echo > /etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:61:                echo "# Autokill" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:62:                echo "*/10 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:76:                echo > /etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:77:                echo "# Autokill" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:78:                echo "*/15 * * * *  root /usr/bin/tendang $max" >>/etc/cron.d/tendang
+.\MENU\sshovpn\autokill.sh:90:                echo > /etc/cron.d/tendang
+.\SETUP\ohp-dropbear.sh:13:domain=$(cat /root/yoloautosc/domain)
+.\SETUP\ohp-dropbear.sh:14:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\ohp-dropbear.sh:29:wget -O /usr/local/bin/ohp "https://${Server_URL}/SETUP/ohp"
+.\SETUP\ohp-dropbear.sh:30:chmod +x /usr/local/bin/ohp
+.\SETUP\ohp-dropbear.sh:69:#Buat Service Untuk OHP Ovpn
+.\SETUP\ohp-dropbear.sh:70:cat > /etc/systemd/system/ohp.service <<END
+.\SETUP\ohp-dropbear.sh:78:ExecStart=/usr/local/bin/ohp -port 8787 -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:1194
+.\SETUP\ohp-dropbear.sh:86:systemctl daemon-reload
+.\SETUP\ohp-dropbear.sh:87:systemctl enable ohp
+.\SETUP\ohp-dropbear.sh:88:systemctl restart ohp
+.\XRAY\add-vless.sh:10:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\add-vless.sh:11:fastly_domain=$(cat /root/yoloautosc/fastly_domain)
+.\XRAY\add-vless.sh:13:none="$(cat /root/log-install.txt | grep -w "VLESS WS None TLS" | cut -d: -f2|sed 's/ //g')"
+.\XRAY\add-vless.sh:36:    local token=$(cat /root/yoloautosc/tele_token.txt)
+.\XRAY\add-vless.sh:37:    local chat_id=$(cat /root/yoloautosc/tele_id.txt)
+.\XRAY\add-vless.sh:68:    CLIENT_EXISTS=$(grep -w $user /usr/local/etc/xray/vless.json | wc -l)
+.\XRAY\add-vless.sh:88:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/vless.json
+.\XRAY\add-vless.sh:91:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/none.json
+.\XRAY\add-vless.sh:94:systemctl restart xray
+.\XRAY\add-vless.sh:95:systemctl restart xray@config
+.\XRAY\add-vless.sh:96:systemctl restart xray@vless
+.\XRAY\add-vless.sh:97:systemctl restart xray@none
+.\XRAY\add-vless.sh:98:service cron restart
+.\MENU\sshovpn\trial-ssh.sh:15:creditt=$(cat /root/provided)
+.\MENU\sshovpn\trial-ssh.sh:24:source /var/lib/premium-script/ipvps.conf
+.\MENU\sshovpn\trial-ssh.sh:26:domain=$(cat /usr/local/etc/xray/domain)
+.\MENU\sshovpn\trial-ssh.sh:41:nsdomain1=$(cat /root/nsdomain)
+.\MENU\sshovpn\trial-ssh.sh:89:echo -e "SSH 22      : $(cat /usr/local/etc/xray/domain):22@$Login:$Pass"
+.\MENU\sshovpn\trial-ssh.sh:90:echo -e "SSH 80      : $(cat /usr/local/etc/xray/domain):80@$Login:$Pass"
+.\MENU\sshovpn\trial-ssh.sh:91:echo -e "SSH 443     : $(cat /usr/local/etc/xray/domain):443@$Login:$Pass"
+.\MENU\sshovpn\trial-ssh.sh:92:echo -e "SSH 1-65535 : $(cat /usr/local/etc/xray/domain):1-65535@$Login:$Pass"
+.\SETUP\ssh-vpn.sh:14:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\ssh-vpn.sh:43:# Edit file /etc/systemd/system/rc-local.service
+.\SETUP\ssh-vpn.sh:44:cat > /etc/systemd/system/rc-local.service <<-END
+.\SETUP\ssh-vpn.sh:71:systemctl enable rc-local
+.\SETUP\ssh-vpn.sh:72:systemctl start rc-local.service
+.\SETUP\ssh-vpn.sh:103:rm /etc/nginx/sites-enabled/default
+.\SETUP\ssh-vpn.sh:104:rm /etc/nginx/sites-available/default
+.\SETUP\ssh-vpn.sh:105:wget -O /etc/nginx/nginx.conf "https://${Server_URL}/OTHERS/nginx.conf"
+.\SETUP\ssh-vpn.sh:106:wget -O /etc/nginx/conf.d/vps.conf "https://${Server_URL}/OTHERS/vps.conf"
+.\SETUP\ssh-vpn.sh:107:# wget -O /etc/nginx/conf.d/xray.conf "https://${Server_URL}/OTHERS/xray.conf" // no need. this sc use fallback now
+.\SETUP\ssh-vpn.sh:169:chown vnstat:vnstat /var/lib/vnstat -R
+.\SETUP\ssh-vpn.sh:170:systemctl enable vnstat
+.\SETUP\ssh-vpn.sh:172:rm -f /root/vnstat-2.12.tar.gz
+.\SETUP\ssh-vpn.sh:173:rm -rf /root/vnstat-2.12
+.\SETUP\ssh-vpn.sh:209:/lib/systemd/systemd-sysv-install enable stunnel4
+.\SETUP\ssh-vpn.sh:210:systemctl start stunnel4
+.\SETUP\ssh-vpn.sh:272:systemctl start resolvconf.service
+.\SETUP\ssh-vpn.sh:273:systemctl enable resolvconf.service
+.\SETUP\ssh-vpn.sh:279:systemctl restart resolvconf.service
+.\SETUP\ssh-vpn.sh:355:echo "0 1 * * * root delete" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:356:echo "0 2 * * * root xp" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:357:echo "0 8 * * * root clear-log" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:358:echo "0 3 * * * root /usr/bin/xp" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:359:echo "0 4 * * * root /usr/bin/delete" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:360:echo "0 9 * * * root /usr/bin/clear-log" >> /etc/crontab
+.\SETUP\ssh-vpn.sh:361:# restart service vron
+.\SETUP\ssh-vpn.sh:362:service cron restart >/dev/null 2>&1
+.\SETUP\ssh-vpn.sh:363:service cron reload >/dev/null 2>&1
+.\SETUP\ssh-vpn.sh:399:rm -f /root/key.pem
+.\SETUP\ssh-vpn.sh:400:rm -f /root/cert.pem
+.\SETUP\ssh-vpn.sh:401:rm -f /root/ssh-vpn.sh
+.\XRAY\cert.sh:8:source /var/lib/premium-script/ipvps.conf
+.\XRAY\cert.sh:9:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\cert.sh:13:systemctl stop nginx
+.\XRAY\cert.sh:14:systemctl stop xray.service
+.\XRAY\cert.sh:15:systemctl stop xray@none.service
+.\XRAY\cert.sh:16:systemctl stop xray@vless.service
+.\XRAY\cert.sh:17:systemctl stop xray@vnone.service
+.\XRAY\cert.sh:18:systemctl stop xray@trojanws.service
+.\XRAY\cert.sh:19:systemctl stop xray@trnone.service
+.\XRAY\cert.sh:20:systemctl stop xray@xtls.service
+.\XRAY\cert.sh:21:systemctl stop xray@trojan.service
+.\XRAY\cert.sh:22:systemctl stop trojan-go.service
+.\XRAY\cert.sh:24:rm -r /root/.acme.sh
+.\XRAY\cert.sh:26:mkdir /root/.acme.sh
+.\XRAY\cert.sh:27:curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+.\XRAY\cert.sh:28:chmod +x /root/.acme.sh/acme.sh
+.\XRAY\cert.sh:29:mkdir /root/.acme.sh
+.\XRAY\cert.sh:30:curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+.\XRAY\cert.sh:31:chmod +x /root/.acme.sh/acme.sh
+.\XRAY\cert.sh:32:/root/.acme.sh/acme.sh --upgrade --auto-upgrade
+.\XRAY\cert.sh:33:/root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+.\XRAY\cert.sh:34:/root/.acme.sh/acme.sh --issue -d $domain -d sshws.$domain --standalone -k ec-256 --listen-v6
+.\XRAY\cert.sh:35:~/.acme.sh/acme.sh --installcert -d $domain -d sshws.$domain --fullchainpath /usr/local/etc/xray/xray.crt --keypath /usr/local/etc/xray/xray.key --ecc
+.\XRAY\cert.sh:36:chmod 755 /usr/local/etc/xray/xray.key;
+.\XRAY\cert.sh:37:service squid start
+.\XRAY\cert.sh:38:systemctl restart nginx
+.\XRAY\cert.sh:45:echo $domain > /usr/local/etc/xray/domain
+.\XRAY\cert.sh:47:systemctl restart nginx
+.\XRAY\cert.sh:49:systemctl restart xray.service
+.\XRAY\cert.sh:51:systemctl restart xray@none.service
+.\XRAY\cert.sh:53:systemctl restart xray@vless.service
+.\XRAY\cert.sh:55:systemctl restart xray@vnone.service
+.\XRAY\cert.sh:57:systemctl restart xray@trojanws.service
+.\XRAY\cert.sh:59:systemctl restart xray@trnone.service
+.\XRAY\cert.sh:61:systemctl restart xray@xtls.service
+.\XRAY\cert.sh:63:systemctl restart xray@trojan.service
+.\XRAY\cert.sh:65:systemctl restart trojan-go.service
+.\MENU\sshovpn\ssh-vpn.sh:32:# // Edit file /etc/systemd/system/rc-local.service
+.\MENU\sshovpn\ssh-vpn.sh:33:cat > /etc/systemd/system/rc-local.service <<-END
+.\MENU\sshovpn\ssh-vpn.sh:60:systemctl enable rc-local
+.\MENU\sshovpn\ssh-vpn.sh:61:systemctl start rc-local.service
+.\MENU\sshovpn\ssh-vpn.sh:91:rm /etc/nginx/sites-enabled/default
+.\MENU\sshovpn\ssh-vpn.sh:92:rm /etc/nginx/sites-available/default
+.\MENU\sshovpn\ssh-vpn.sh:93:wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/${GitUser}/sapphire/main/nginx.conf"
+.\MENU\sshovpn\ssh-vpn.sh:95:wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/${GitUser}/sapphire/main/vps.conf"
+.\MENU\sshovpn\ssh-vpn.sh:157:chown vnstat:vnstat /var/lib/vnstat -R
+.\MENU\sshovpn\ssh-vpn.sh:158:systemctl enable vnstat
+.\MENU\sshovpn\ssh-vpn.sh:160:rm -f /root/vnstat-2.6.tar.gz
+.\MENU\sshovpn\ssh-vpn.sh:161:rm -rf /root/vnstat-2.6
+.\MENU\sshovpn\ssh-vpn.sh:197:/lib/systemd/systemd-sysv-install enable stunnel4
+.\MENU\sshovpn\ssh-vpn.sh:198:systemctl start stunnel4
+.\MENU\sshovpn\ssh-vpn.sh:372:echo "0 1 * * * root delete" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:373:echo "0 2 * * * root xp" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:374:echo "0 5 * * * root reboot" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:375:echo "0 6 * * * root backup" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:376:echo "0 8 * * * root clear-log" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:377:echo "0 23 * * * root backup" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:378:echo "0 3 * * * root /usr/bin/xp" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:379:echo "0 4 * * * root /usr/bin/delete" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:380:echo "0 9 * * * root /usr/bin/clear-log" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:381:#echo "10 23 * * * root /usr/bin/backup" >> /etc/crontab
+.\MENU\sshovpn\ssh-vpn.sh:418:rm -f /root/key.pem
+.\MENU\sshovpn\ssh-vpn.sh:419:rm -f /root/cert.pem
+.\MENU\sshovpn\ssh-vpn.sh:420:rm -f /root/ssh-vpn.sh
+.\OTHERS\kumbang.sh:4:bugdigi=/root/.yolonet/.kumbang/digi
+.\OTHERS\kumbang.sh:5:bugumo=/root/.yolonet/.kumbang/umobile
+.\OTHERS\kumbang.sh:6:bugmaxis=/root/.yolonet/.kumbang/maxis
+.\OTHERS\kumbang.sh:7:bugunifi=/root/.yolonet/.kumbang/unifi
+.\OTHERS\kumbang.sh:8:bugyodoo=/root/.yolonet/.kumbang/yodoo
+.\OTHERS\kumbang.sh:9:bugcelcom=/root/.yolonet/.kumbang/celcom
+.\OTHERS\kumbang.sh:10:installed=/root/.yolonet/.kumbang/install
+.\OTHERS\kumbang.sh:33:mkdir /root/.yolonet
+.\OTHERS\kumbang.sh:34:mkdir /root/.yolonet/.kumbang
+.\XRAY\cek-xray.sh:8:data=( `cat /usr/local/etc/xray/config.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\XRAY\cek-xray.sh:18:data2=( `cat /var/log/xray/xtls-access.log | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq`);
+.\XRAY\cek-xray.sh:21:jum=$(cat /var/log/xray/xtls-access.log | grep -Fw "$akun" | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | grep -Fw "$ip" | sort | uniq)
+.\XRAY\add-trialvless.sh:11:    local token=$(cat /root/yoloautosc/tele_token.txt)
+.\XRAY\add-trialvless.sh:12:    local chat_id=$(cat /root/yoloautosc/tele_id.txt)
+.\XRAY\add-trialvless.sh:19:domain=$(cat /root/yoloautosc/domain)
+.\XRAY\add-trialvless.sh:20:fastly_domain=$(cat /root/yoloautosc/fastly_domain)
+.\XRAY\add-trialvless.sh:36:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/vless.json
+.\XRAY\add-trialvless.sh:38:},{"id": "'""$uuid""'","email": "'""$user""'"' /usr/local/etc/xray/none.json
+.\XRAY\add-trialvless.sh:41:systemctl restart xray
+.\XRAY\add-trialvless.sh:42:systemctl restart xray@config
+.\XRAY\add-trialvless.sh:43:systemctl restart xray@vless
+.\XRAY\add-trialvless.sh:44:systemctl restart xray@none
+.\XRAY\add-trialvless.sh:45:service cron restart
+.\MENU\sshovpn\add-ssh.sh:16:export creditt=$(cat /root/provided)
+.\MENU\sshovpn\add-ssh.sh:37:source /var/lib/premium-script/ipvps.conf
+.\MENU\sshovpn\add-ssh.sh:39:domain=$(cat /usr/local/etc/xray/domain)
+.\MENU\sshovpn\add-ssh.sh:55:nsdomain1=$(cat /root/nsdomain)
+.\MENU\sshovpn\add-ssh.sh:114:SSH 22      : $(cat /usr/local/etc/xray/domain):22@$Login:$Pass
+.\MENU\sshovpn\add-ssh.sh:115:SSH 80      : $(cat /usr/local/etc/xray/domain):80@$Login:$Pass
+.\MENU\sshovpn\add-ssh.sh:116:SSH 443     : $(cat /usr/local/etc/xray/domain):443@$Login:$Pass
+.\MENU\sshovpn\add-ssh.sh:117:SSH 1-65535 : $(cat /usr/local/etc/xray/domain):1-65535@$Login:$Pass
+.\MENU\sshovpn\add-ssh.sh:164:echo -e "SSH 22      : $(cat /usr/local/etc/xray/domain):22@$Login:$Pass"
+.\MENU\sshovpn\add-ssh.sh:165:echo -e "SSH 80      : $(cat /usr/local/etc/xray/domain):80@$Login:$Pass"
+.\MENU\sshovpn\add-ssh.sh:166:echo -e "SSH 443     : $(cat /usr/local/etc/xray/domain):443@$Login:$Pass"
+.\MENU\sshovpn\add-ssh.sh:167:echo -e "SSH 1-65535 : $(cat /usr/local/etc/xray/domain):1-65535@$Login:$Pass"
+.\SETUP\ins-xray.sh:13:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\ins-xray.sh:23:domain=$(cat /root/yoloautosc/domain)
+.\SETUP\ins-xray.sh:32:systemctl enable chronyd && systemctl restart chronyd
+.\SETUP\ins-xray.sh:33:systemctl enable chrony && systemctl restart chrony
+.\SETUP\ins-xray.sh:42:mkdir -p /var/log/xray
+.\SETUP\ins-xray.sh:43:chmod +x /var/log/xray
+.\SETUP\ins-xray.sh:46:mkdir -p /usr/local/etc/xray
+.\SETUP\ins-xray.sh:58:mv xray /usr/local/bin/xray
+.\SETUP\ins-xray.sh:59:chmod +x /usr/local/bin/xray
+.\SETUP\ins-xray.sh:62:mkdir /root/.acme.sh
+.\SETUP\ins-xray.sh:63:curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+.\SETUP\ins-xray.sh:64:chmod +x /root/.acme.sh/acme.sh
+.\SETUP\ins-xray.sh:65:/root/.acme.sh/acme.sh --upgrade --auto-upgrade
+.\SETUP\ins-xray.sh:66:/root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+.\SETUP\ins-xray.sh:67:/root/.acme.sh/acme.sh --issue -d $domain -d sshws.$domain --standalone -k ec-256 --listen-v6
+.\SETUP\ins-xray.sh:68:~/.acme.sh/acme.sh --installcert -d $domain -d sshws.$domain --fullchainpath /usr/local/etc/xray/xray.crt --keypath /usr/local/etc/xray/xray.key --ecc
+.\SETUP\ins-xray.sh:69:chmod 755 /usr/local/etc/xray/xray.key;
+.\SETUP\ins-xray.sh:70:service squid start
+.\SETUP\ins-xray.sh:71:systemctl restart nginx
+.\SETUP\ins-xray.sh:82:cat> /usr/local/etc/xray/config.json << END
+.\SETUP\ins-xray.sh:85:      "access":"/var/log/xray/xtls-access.log",
+.\SETUP\ins-xray.sh:86:      "error":"/var/log/xray/xtls-error.log",
+.\SETUP\ins-xray.sh:127:                            "certificateFile": "/usr/local/etc/xray/xray.crt",
+.\SETUP\ins-xray.sh:128:                            "keyFile": "/usr/local/etc/xray/xray.key"
+.\SETUP\ins-xray.sh:150:cat> /usr/local/etc/xray/none.json << END
+.\SETUP\ins-xray.sh:153:    "access": "/var/log/xray/vless_ntls.log",
+.\SETUP\ins-xray.sh:154:    "error": "/var/log/xray/vless_ntls_error.log",
+.\SETUP\ins-xray.sh:257:cat > /usr/local/etc/xray/vless.json << END
+.\SETUP\ins-xray.sh:260:    "access": "/var/log/xray/vless_tls.log",
+.\SETUP\ins-xray.sh:261:    "error": "/var/log/xray/vless_error.log",
+.\SETUP\ins-xray.sh:364:rm -rf /etc/systemd/system/xray.service.d
+.\SETUP\ins-xray.sh:365:rm -rf /etc/systemd/system/xray@.service.d
+.\SETUP\ins-xray.sh:366:cat> /etc/systemd/system/xray.service << END
+.\SETUP\ins-xray.sh:377:ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/config.json
+.\SETUP\ins-xray.sh:389:cat> /etc/systemd/system/xray@.service << END
+.\SETUP\ins-xray.sh:400:ExecStart=/usr/local/bin/xray run -config /usr/local/etc/xray/%i.json
+.\SETUP\ins-xray.sh:414:systemctl daemon-reload
+.\SETUP\ins-xray.sh:420:systemctl daemon-reload
+.\SETUP\ins-xray.sh:421:systemctl enable xray.service
+.\SETUP\ins-xray.sh:422:systemctl start xray.service
+.\SETUP\ins-xray.sh:423:systemctl restart xray.service
+.\SETUP\ins-xray.sh:426:systemctl daemon-reload
+.\SETUP\ins-xray.sh:427:systemctl enable xray@none.service
+.\SETUP\ins-xray.sh:428:systemctl start xray@none.service
+.\SETUP\ins-xray.sh:429:systemctl restart xray@none.service
+.\SETUP\ins-xray.sh:433:systemctl daemon-reload
+.\SETUP\ins-xray.sh:434:systemctl enable xray@config.service
+.\SETUP\ins-xray.sh:435:systemctl start xray@config.service
+.\SETUP\ins-xray.sh:436:systemctl restart xray@config.service
+.\SETUP\ins-xray.sh:440:systemctl daemon-reload
+.\SETUP\ins-xray.sh:441:systemctl enable xray@vless.service
+.\SETUP\ins-xray.sh:442:systemctl start xray@vless.service
+.\SETUP\ins-xray.sh:443:systemctl restart xray@vless.service
+.\SETUP\ins-xray.sh:445:# enable service multiport
+.\SETUP\ins-xray.sh:447:systemctl enable nginx
+.\SETUP\ins-xray.sh:448:systemctl start nginx
+.\SETUP\ins-xray.sh:449:systemctl restart nginx
+.\SETUP\ins-xray.sh:488:mv /root/domain /usr/local/etc/xray/
+.\change-port\port-ohp.sh:37:rm -f /etc/systemd/system/ohps.service
+.\change-port\port-ohp.sh:38:cat > /etc/systemd/system/ohps.service <<END
+.\change-port\port-ohp.sh:46:ExecStart=/usr/local/bin/ohps -port $vpn -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:22
+.\change-port\port-ohp.sh:53:systemctl daemon-reload
+.\change-port\port-ohp.sh:54:systemctl enable ohps
+.\change-port\port-ohp.sh:55:systemctl restart ohps
+.\change-port\port-ohp.sh:56:sed -i "s/   - OHP SSH                 : $ohpssh/   - OHP SSH                 : $vpn/g" /root/log-install.txt
+.\change-port\port-ohp.sh:70:rm -f /etc/systemd/system/ohpd.service
+.\change-port\port-ohp.sh:71:cat > /etc/systemd/system/ohpd.service <<END
+.\change-port\port-ohp.sh:79:ExecStart=/usr/local/bin/ohpd -port $vpn -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:109
+.\change-port\port-ohp.sh:86:systemctl daemon-reload
+.\change-port\port-ohp.sh:87:systemctl enable ohpd
+.\change-port\port-ohp.sh:88:systemctl restart ohpd
+.\change-port\port-ohp.sh:89:sed -i "s/   - OHP Dropbear            : $ohpdrop/   - OHP Dropbear            : $vpn/g" /root/log-install.txt
+.\MENU\sshovpn\delete.sh:25:               echo "echo "Expired- User : $username Expire at : $tgl $bulantahun"" >> /usr/local/bin/alluser
+.\MENU\sshovpn\delete.sh:31:               echo "echo "Expired- Username : $username are expired at: $tgl $bulantahun and removed : $hariini "" >> /usr/local/bin/deleteduser
+.\SETUP\setup-caddy.sh:12:mkdir -p /var/log/caddy
+.\SETUP\setup-caddy.sh:13:chown -R caddy:caddy /var/log/caddy
+.\SETUP\setup-caddy.sh:16:cat >/etc/caddy/Caddyfile <<'EOF'
+.\SETUP\setup-caddy.sh:64:        respond "Service Available" 200
+.\SETUP\setup-caddy.sh:89:systemctl daemon-reload
+.\SETUP\setup-caddy.sh:90:systemctl enable caddy
+.\SETUP\setup-caddy.sh:91:systemctl restart caddy
+.\SETUP\setup-caddy.sh:94:echo "    Config file: /etc/caddy/Caddyfile"
+.\SETUP\setup-caddy.sh:95:echo "    Logs:        /var/log/caddy/universal-xray.log"
+.\XRAY\cek-vless.sh:8:data=( `cat /usr/local/etc/xray/vless.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+.\XRAY\cek-vless.sh:18:data2=( `cat /var/log/xray/vless_tls.log /var/log/xray/vless_ntls.log | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq`);
+.\XRAY\cek-vless.sh:21:jum=$(cat /var/log/xray/vless_tls.log /var/log/xray/vless_ntls.log | grep -w "$akun" | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | grep -Fw "$ip" | sort | uniq)
+.\SETUP\set-br.sh:14:Server_URL="$(cat /root/install_link.txt )"
+.\SETUP\set-br.sh:18:wget -O /root/.config/rclone/rclone.conf "https://${Server_URL}/rclone.conf"
+.\SETUP\set-br.sh:42:if [ ! -f "/etc/cron.d/cleaner" ]; then
+.\SETUP\set-br.sh:43:cat> /etc/cron.d/cleaner << END
+.\SETUP\set-br.sh:45:PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+.\SETUP\set-br.sh:49:service cron restart > /dev/null 2>&1
+.\SETUP\set-br.sh:50:rm -f /root/set-br.sh
+.\change-port\port-ssl.sh:39:sed -i "s/   - Stunnel4                : $ssl, $ssl2/   - Stunnel4                : $stl, $ssl2/g" /root/log-install.txt
+.\change-port\port-ssl.sh:40:sed -i "s/   - Websocket SSL(HTTPS)    : $ssl/   - Websocket SSL(HTTPS)    : $stl/g" /root/log-install.txt
+.\change-port\port-ssl.sh:56:sed -i "s/   - Stunnel4                : $ssl, $ssl2/   - Stunnel4                : $ssl, $stl/g" /root/log-install.txt
+.\change-port\port-websocket.sh:40:rm -f /etc/systemd/system/cdn-dropbear.service
+.\change-port\port-websocket.sh:41:cat > /etc/systemd/system/cdn-dropbear.service <<END
+.\change-port\port-websocket.sh:53:ExecStart=/usr/bin/python -O /usr/local/bin/cdn-dropbear $vpn
+.\change-port\port-websocket.sh:60:systemctl daemon-reload
+.\change-port\port-websocket.sh:61:systemctl enable cdn-dropbear
+.\change-port\port-websocket.sh:62:systemctl start cdn-dropbear
+.\change-port\port-websocket.sh:63:systemctl restart cdn-dropbear
+.\change-port\port-websocket.sh:64:sed -i "s/   - Websocket SSH(HTTP)     : $wsdropbear/   - Websocket SSH(HTTP)     : $vpn/g" /root/log-install.txt
+.\change-port\port-websocket.sh:79:sed -i "s/   - Stunnel4                : $wsstunnel, $ssl2/   - Stunnel4                : $vpn, $ssl2/g" /root/log-install.txt
+.\change-port\port-websocket.sh:80:sed -i "s/   - Websocket SSL(HTTPS)    : $wsstunnel/   - Websocket SSL(HTTPS)    : $vpn/g" /root/log-install.txt
+.\change-port\port-websocket.sh:95:rm -f /etc/systemd/system/cdn-ovpn.service
+.\change-port\port-websocket.sh:96:cat > /etc/systemd/system/cdn-ovpn.service <<END
+.\change-port\port-websocket.sh:108:ExecStart=/usr/bin/python -O /usr/local/bin/cdn-ovpn $vpn
+.\change-port\port-websocket.sh:115:systemctl daemon-reload
+.\change-port\port-websocket.sh:116:systemctl enable cdn-ovpn
+.\change-port\port-websocket.sh:117:systemctl start cdn-ovpn
+.\change-port\port-websocket.sh:118:systemctl restart cdn-ovpn
+.\change-port\port-websocket.sh:119:sed -i "s/   - OpenVPN-WS              : $wsovpn/   - OpenVPN-WS              : $vpn/g" /root/log-install.txt
+.\MENU\sshovpn\tendang.sh:5:if [ -e "/var/log/auth.log" ]; then
+.\MENU\sshovpn\tendang.sh:7:        LOG="/var/log/auth.log";
+.\MENU\sshovpn\tendang.sh:9:if [ -e "/var/log/secure" ]; then
+.\MENU\sshovpn\tendang.sh:11:        LOG="/var/log/secure";
+.\MENU\sshovpn\tendang.sh:15:	service ssh restart > /dev/null 2>&1;
+.\MENU\sshovpn\tendang.sh:18:	service sshd restart > /dev/null 2>&1;
+.\MENU\sshovpn\tendang.sh:20:	service dropbear restart > /dev/null 2>&1;
+.\MENU\sshovpn\tendang.sh:26:        cat /etc/passwd | grep "/home/" | cut -d":" -f1 > /root/user.txt
+.\MENU\sshovpn\tendang.sh:27:        username1=( `cat "/root/user.txt" `);
+.\MENU\sshovpn\tendang.sh:81:                        echo "$date - ${username[$i]} - ${jumlah[$i]}" >> /root/log-limit.txt;
+.\MENU\sshovpn\tendang.sh:89:                        service ssh restart > /dev/null 2>&1;
+.\MENU\sshovpn\tendang.sh:92:                        service sshd restart > /dev/null 2>&1;
+.\MENU\sshovpn\tendang.sh:94:                service dropbear restart > /dev/null 2>&1;
+.\change-port\port-squid.sh:38:sed -i "s/$sqd/$squid/g" /root/log-install.txt
+.\change-port\port-squid.sh:54:sed -i "s/$sqd2/$squid/g" /root/log-install.txt
+.\change-port\port-ovpn.sh:15:domain=$(cat /usr/local/etc/xray/domain)
+.\change-port\port-ovpn.sh:95:systemctl disable --now openvpn-server@server-tcp-$ovpn > /dev/null
+.\change-port\port-ovpn.sh:96:systemctl enable --now openvpn-server@server-tcp-$vpn > /dev/null
+.\change-port\port-ovpn.sh:97:sed -i "s/   - OpenVPN                 : TCP $ovpn, UDP $ovpn2/   - OpenVPN                 : TCP $vpn, UDP $ovpn2/g" /root/log-install.txt
+.\change-port\port-ovpn.sh:164:systemctl disable --now openvpn-server@server-udp-$ovpn2 > /dev/null
+.\change-port\port-ovpn.sh:165:systemctl enable --now openvpn-server@server-udp-$vpn > /dev/null
+.\change-port\port-ovpn.sh:166:sed -i "s/   - OpenVPN                 : TCP $ovpn, UDP $ovpn2/   - OpenVPN                 : TCP $ovpn, UDP $vpn/g" /root/log-install.txt
+.\change-port\port-ovpn.sh:181:rm -f /etc/systemd/system/ohp.service
+.\change-port\port-ovpn.sh:207:#Buat Service Untuk OHP Ovpn
+.\change-port\port-ovpn.sh:208:cat > /etc/systemd/system/ohp.service <<END
+.\change-port\port-ovpn.sh:216:ExecStart=/usr/local/bin/ohp -port $vpn -proxy 127.0.0.1:3128 -tunnel 127.0.0.1:1194
+.\change-port\port-ovpn.sh:227:systemctl daemon-reload
+.\change-port\port-ovpn.sh:228:systemctl enable ohp
+.\change-port\port-ovpn.sh:229:systemctl restart ohp
+.\change-port\port-ovpn.sh:230:sed -i "s/   - OHP OpenVPN             : $ovpn3/   - OHP OpenVPN             : $vpn/g" /root/log-install.txt
+.\change-port\port-ovpn.sh:267:systemctl enable openvpn
+.\change-port\port-ovpn.sh:268:systemctl start openvpn
+.\change-port\port-ovpn.sh:270:sed -i "s/   - OpenVPN SSL             : $ovpn4/   - OpenVPN SSL             : $vpn/g" /root/log-install.txt
+.\MENU\menu-xray.sh:35:domain=$(cat /root/yoloautosc/domain)
+.\MENU\menu-xray.sh:39:namaklien=$(cat /root/yoloautosc/clientname.conf)
+.\MENU\menu-xray.sh:45:nginx=$( systemctl status nginx | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu-xray.sh:53:xray=$( systemctl status xray | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu-xray.sh:62:totalvless=$(grep -c -E "^### " "/usr/local/etc/xray/vless.json")
+.\MENU\menu-xray.sh:64:totalxtls=$(grep -c -E "^### " "/usr/local/etc/xray/config.json")
+.\MENU\menu.sh:35:domain=$(cat /root/yoloautosc/domain)
+.\MENU\menu.sh:39:namaklien=$(cat /root/yoloautosc/clientname.conf)
+.\MENU\menu.sh:43:nginx=$( systemctl status nginx | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu.sh:50:nginx=$( systemctl status caddy | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu.sh:57:nginx=$( systemctl status ws-http | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu.sh:64:xray=$( systemctl status xray | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+.\MENU\menu.sh:73:totalvless=$(grep -c -E "^### " "/usr/local/etc/xray/vless.json")
+.\MENU\menu.sh:75:totalxtls=$(grep -c -E "^### " "/usr/local/etc/xray/config.json")
