@@ -34,7 +34,7 @@ src="https://img.shields.io/badge/Service-Xray-success.svg">  <img src= "https:/
 ## INSTALLATION LINK IF ASKED
 
   ```html
-  raw.githubusercontent.com/YoloNet/test/main/
+  raw.githubusercontent.com/YoloNet/test/main
 
   ```
  
