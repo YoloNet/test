@@ -44,9 +44,11 @@ systemctl restart xray@vless
 systemctl restart xray@none
 service cron restart
 
+ws_path="/ws"
+
 # Generate config links
-vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
-vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
+vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=${ws_path}&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
+vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=${ws_path}#XRAY_VLESS_NON_TLS_${user}"
 
 digi_apn="vless://${uuid}@mobile.useinsider.com:80?security=none&encryption=none&type=ws&headerType=none&path=/ws&host=${domain}#${user}(Digi Apn)"
 digi_booster="vless://${uuid}@162.159.133.61:80?security=none&encryption=none&type=ws&headerType=none&path=/ws&host=${domain}#${user}(Digi Booster)"

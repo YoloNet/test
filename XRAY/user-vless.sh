@@ -75,8 +75,10 @@ uuid=$(grep "},{" /usr/local/etc/xray/vless.json | cut -b 11-46 | sed -n "${CLIE
 exp=$(grep -E "### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
 hariini=`date -d "0 days" +"%Y-%m-%d"`
 
-vlesslink1="vless://${uuid}@${sts}${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${sni}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
-vlesslink2="vless://${uuid}@${sts}${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
+custom_path="/ws"
+
+vlesslink1="vless://${uuid}@${sts}${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=${custom_path}&sni=${sni}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
+vlesslink2="vless://${uuid}@${sts}${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=${custom_path}#XRAY_VLESS_NON_TLS_${user}"
 vlesslink3="vless://${uuid}@104.17.113.188:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=wss://who.int/ws&allowInsecure=1&sni=who.int#XRAY_VLESS_MAXIS_${user}"
 vlesslink4="vless://${uuid}@162.159.134.61:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_DIGI_${user}"
 vlesslink5="vless://${uuid}@104.20.65.29:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=wss://onlinepayment.celcom.com.my/ws&allowInsecure=1&sni=onlinepayment.celcom.com.my#XRAY_VLESS_CELCOM_${user}"
@@ -93,8 +95,8 @@ echo -e "ID                : ${uuid}"
 echo -e "Security          : TLS"
 echo -e "Encryption        : None"
 echo -e "Network           : WS"
-echo -e "Path TLS          : /ws"
-echo -e "Path NTLS         : /ws"
+echo -e "Path TLS          : ${custom_path}"
+echo -e "Path NTLS         : ${custom_path}"
 echo -e "═══════════════════════════════════════"
 echo -e "Link WS TLS       : ${vlesslink1}"
 echo -e "═══════════════════════════════════════"

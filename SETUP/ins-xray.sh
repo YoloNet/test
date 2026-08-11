@@ -179,7 +179,7 @@ cat> /usr/local/etc/xray/none.json << END
         "network": "ws",
         "security": "none",
         "wsSettings": {
-          "path": "/ws"
+          "path": "/"
         }
       }
     }
@@ -288,7 +288,7 @@ cat > /usr/local/etc/xray/vless.json << END
         "wsSettings":
             {
               "acceptProxyProtocol": true,
-              "path": "/ws"
+              "path": "/"
             }
       }
     }
@@ -393,7 +393,7 @@ cat > /usr/local/etc/xray/xhttp.json << END
         "security": "none",
         "xhttpSettings": {
           "host": "",
-          "path": "/xhttp",
+          "path": "/",
           "mode": "auto"
         }
       }

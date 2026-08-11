@@ -1,30 +1,39 @@
 #!/bin/bash
 #Autoscript-Lite By YoLoNET
 clear
-/etc/init.d/ssh restart
-/etc/init.d/dropbear restart
-/etc/init.d/stunnel4 restart
-/etc/init.d/openvpn restart
-systemctl restart --now openvpn-server@server-tcp-1194
-systemctl restart --now openvpn-server@server-udp-2200
-/etc/init.d/fail2ban restart
-/etc/init.d/cron restart
-/etc/init.d/nginx restart
-/etc/init.d/squid restart
-systemctl restart xray.service
-systemctl restart xray@vless.service
-systemctl restart xray@none.service
-systemctl restart xray@xtls.service
-systemctl restart ws-http
-systemctl restart ws-https
-systemctl restart ohp
-systemctl restart ohpd
-systemctl restart ohps
-systemctl restart cdn-dropbear
-systemctl restart cdn-ovpn
-systemctl restart cdn-ssl
-systemctl restart client-sldns
-systemctl restart server-sldns
+
+restart_service() {
+    local svc="$1"
+    if systemctl list-unit-files "$svc.service" >/dev/null 2>&1; then
+        systemctl restart "$svc.service" >/dev/null 2>&1 || true
+    elif systemctl list-unit-files "$svc" >/dev/null 2>&1; then
+        systemctl restart "$svc" >/dev/null 2>&1 || true
+    elif command -v service >/dev/null 2>&1; then
+        service "$svc" restart >/dev/null 2>&1 || true
+    fi
+}
+
+restart_service ssh
+restart_service dropbear
+restart_service stunnel4
+restart_service cron
+restart_service nginx
+restart_service squid
+restart_service fail2ban
+restart_service openvpn
+restart_service openvpn-server@server-tcp-1194
+restart_service openvpn-server@server-udp-2200
+restart_service xray
+restart_service xray@none
+restart_service xray@config
+restart_service xray@vless
+restart_service xray@xhttp
+restart_service ws-http
+restart_service ws-https
+restart_service ohp
+restart_service ohpd
+restart_service ohps
+
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 1000
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 1000
 screen -dmS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 1000

@@ -33,6 +33,18 @@ urlencode() {
     echo "${encoded}"
 }
 
+normalize_vless_path() {
+    local path="$1"
+    local fallback="$2"
+
+    path="${path:-$fallback}"
+    if [[ "$path" != /* ]]; then
+        path="/$path"
+    fi
+
+    echo "$path"
+}
+
 # Function to send message to Telegram
 send_telegram_message() {
     local message="$1"
@@ -221,9 +233,13 @@ else
     echo -e "\e[33mNo quota cap applied. User has unlimited data.\e[0m"
 fi
 
-vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
-vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
-vlessxhttp="vless://${uuid}@${domain}:80?type=xhttp&encryption=none&mode=auto&path=%2Fxhttp&host=${domain}#XRAY_VLESS_XHTTP_${user}"
+ws_path="/ws"
+xhttp_path="/xhttp"
+encoded_xhttp_path=$(urlencode "$xhttp_path")
+
+vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=${ws_path}&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
+vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=${ws_path}#XRAY_VLESS_NON_TLS_${user}"
+vlessxhttp="vless://${uuid}@${domain}:80?type=xhttp&encryption=none&mode=auto&path=${encoded_xhttp_path}&host=${domain}#XRAY_VLESS_XHTTP_${user}"
 # Pre Made Configs
 digi_apn="vless://${uuid}@mobile.useinsider.com:80?security=none&encryption=none&type=ws&headerType=none&path=/ws&host=${domain}#redvpn(Digi Apn)"
 digi_booster="vless://${uuid}@162.159.133.61:80?security=none&encryption=none&type=ws&headerType=none&path=/ws&host=${domain}#redvpn(Digi Booster)"
