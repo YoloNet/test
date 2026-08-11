@@ -48,10 +48,18 @@ apply_user_speed_limit() {
         }
     }
 
-    uid=$(id -u "$username" 2>/dev/null) || {
+    uid=""
+    for _ in 1 2 3 4 5; do
+        uid=$(id -u "$username" 2>/dev/null)
+        if [ -n "$uid" ]; then
+            break
+        fi
+        sleep 1
+    done
+    if [ -z "$uid" ]; then
         echo -e "\e[31mUser '$username' not found. Unable to apply speed limit.\e[0m"
         return 1
-    }
+    fi
 
     iface=$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}')
     if [ -z "$iface" ]; then

@@ -5,6 +5,8 @@ TELEGRAM_CHAT_ID=$(cat /root/yoloautosc/tele_id.txt 2>/dev/null)
 CPU_LIMIT=85
 MEM_LIMIT=80
 PROXY_LIMIT=20
+COOLDOWN_SECONDS=900
+LAST_RUN_FILE="/var/run/anti-highusage.last"
 LOG_FILE="/var/log/anti-highusage.log"
 
 send_telegram_message() {
@@ -34,6 +36,16 @@ restart_proxy_services() {
 
 check_usage() {
     local cpu_usage mem_usage proxy_count
+
+    if [ -f "$LAST_RUN_FILE" ]; then
+        local last_run now
+        last_run=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo 0)
+        now=$(date +%s)
+        if (( now - last_run < COOLDOWN_SECONDS )); then
+            exit 0
+        fi
+    fi
+    echo "$(date +%s)" > "$LAST_RUN_FILE"
 
     cpu_usage=$(top -bn1 | awk '/%Cpu/ {print $2 + $4 + $6 + $8}' | cut -d. -f1 | head -n 1)
     mem_usage=$(free | awk '/Mem/{printf("%.0f", $3/$2*100)}')
