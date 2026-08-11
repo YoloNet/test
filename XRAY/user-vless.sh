@@ -75,7 +75,7 @@ uuid=$(grep "},{" /usr/local/etc/xray/vless.json | cut -b 11-46 | sed -n "${CLIE
 exp=$(grep -E "### " "/usr/local/etc/xray/vless.json" | cut -d ' ' -f 3 | sed -n "${CLIENT_NUMBER}"p)
 hariini=`date -d "0 days" +"%Y-%m-%d"`
 
-vlesslink1="vless://${uuid}@${sts}${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&allowInsecure=1&sni=${sni}#XRAY_VLESS_TLS_${user}"
+vlesslink1="vless://${uuid}@${sts}${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${sni}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
 vlesslink2="vless://${uuid}@${sts}${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
 vlesslink3="vless://${uuid}@104.17.113.188:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=wss://who.int/ws&allowInsecure=1&sni=who.int#XRAY_VLESS_MAXIS_${user}"
 vlesslink4="vless://${uuid}@162.159.134.61:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_DIGI_${user}"

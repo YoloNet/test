@@ -41,6 +41,9 @@ apt install jq -y
 apt install gawk -y
 apt install bison -y
 apt install sqlite3 -y
+apt install cron -y
+service cron start >/dev/null 2>&1 || true
+systemctl enable cron >/dev/null 2>&1 || true
 
 #start script installation
 echo -e "\e[0;32mPreparing the autoscript installation...\e[0m"
@@ -138,6 +141,14 @@ sleep 1
 echo -e "\e[0;32mINSTALLING XRAY CORE...\e[0m"
 sleep 1
 wget https://${Server_URL}/SETUP/ins-xray.sh && chmod +x ins-xray.sh && ./ins-xray.sh
+if ! command -v xray >/dev/null 2>&1; then
+    echo -e "\e[31mXray binary not found after install, retrying fallback install...\e[0m"
+    wget https://${Server_URL}/SETUP/ins-xray.sh -O /tmp/ins-xray.sh && chmod +x /tmp/ins-xray.sh && /tmp/ins-xray.sh
+fi
+if ! command -v xray >/dev/null 2>&1; then
+    echo -e "\e[31mXray installation still failed. Please verify the installer output.\e[0m"
+    exit 1
+fi
 echo -e "\e[0;32mDONE INSTALLING XRAY CORE\e[0m"
 echo -e ""
 sleep 1
@@ -195,7 +206,7 @@ cd
 echo "0 6 * * * root reboot" >> /etc/crontab
 echo "*/2 * * * * root /usr/bin/cleaner" >> /etc/crontab
 echo "@hourly root /usr/bin/backup_tele" >> /etc/crontab
-echo "*/1 * * * * root /usr/bin/anti-highusage" >> /etc/crontab # / / Every 1 minute
+echo "*/10 * * * * root /usr/bin/anti-highusage" >> /etc/crontab # / / Every 10 minutes
 echo "*/62 * * * * root /usr/bin/server_status" >> /etc/crontab # / / Every 62 Minutes
 echo "*/5 * * * * root /usr/bin/quota_check" >> /etc/crontab # / / Every 5 minutes
 

@@ -45,7 +45,7 @@ systemctl restart xray@none
 service cron restart
 
 # Generate config links
-vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&allowInsecure=1&sni=${domain}#XRAY_VLESS_TLS_${user}"
+vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
 vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
 
 digi_apn="vless://${uuid}@mobile.useinsider.com:80?security=none&encryption=none&type=ws&headerType=none&path=/ws&host=${domain}#${user}(Digi Apn)"

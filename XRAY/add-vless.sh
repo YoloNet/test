@@ -12,6 +12,8 @@ domain=$(cat /root/yoloautosc/domain)
 fastly_domain=$(cat /root/yoloautosc/fastly_domain)
 tls="$(cat ~/log-install.txt | grep -w "VLESS WS TLS" | cut -d: -f2|sed 's/ //g')"
 none="$(cat /root/log-install.txt | grep -w "VLESS WS None TLS" | cut -d: -f2|sed 's/ //g')"
+tls="${tls:-443}"
+none="${none:-80}"
 
 # Function to URL encode a string
 urlencode() {
@@ -219,7 +221,7 @@ else
     echo -e "\e[33mNo quota cap applied. User has unlimited data.\e[0m"
 fi
 
-vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&allowInsecure=1&sni=${domain}#XRAY_VLESS_TLS_${user}"
+vlesstls="vless://${uuid}@${domain}:${tls}?type=ws&encryption=none&security=tls&host=${domain}&path=/ws&sni=${domain}&allowInsecure=1#XRAY_VLESS_TLS_${user}"
 vlessnontls="vless://${uuid}@${domain}:${none}?type=ws&encryption=none&security=none&host=${domain}&path=/ws#XRAY_VLESS_NON_TLS_${user}"
 vlessxhttp="vless://${uuid}@${domain}:80?type=xhttp&encryption=none&mode=auto&path=%2Fxhttp&host=${domain}#XRAY_VLESS_XHTTP_${user}"
 # Pre Made Configs
